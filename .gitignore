@@ -1,0 +1,6 @@
+.DS_Store
+*.swp
+*.swo
+*~
+test-speech.html
+node_modules/
