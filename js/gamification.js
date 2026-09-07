@@ -27,13 +27,39 @@ const Gamification = {
     const saved = await Storage.getProgress();
     this.data = saved && saved.gamification ? { ...this.defaults(), ...saved.gamification } : this.defaults();
     this._checkDaily();
+    // 从保存的数据恢复 check 函数（IndexedDB 不存函数）
+    this._hydrateChecks();
     await this._save();
   },
 
   async _save() {
     const progress = (await Storage.getProgress()) || {};
-    progress.gamification = this.data;
+    // 深拷贝并移除 check 函数（IndexedDB 不能存储函数）
+    const saveData = JSON.parse(JSON.stringify(this.data));
+    progress.gamification = saveData;
     await Storage.setProgress(progress);
+  },
+
+  /** 恢复 dailyChallenges 中的 check 函数 */
+  _hydrateChecks() {
+    const pool = this._getChallengePool();
+    for (const challenge of this.data.dailyChallenges) {
+      const template = pool.find(c => c.id === challenge.id);
+      if (template) challenge.check = template.check;
+    }
+  },
+
+  _getChallengePool() {
+    return [
+      { id: 'learn_3', desc: '完成 3 个课时', check: (ctx) => ctx.lessonsDone >= 3 },
+      { id: 'quiz_10', desc: '答对 10 道题', check: (ctx) => ctx.quizCorrect >= 10 },
+      { id: 'streak_3', desc: '连续答对 3 题', check: (ctx) => ctx.bestTodayStreak >= 3 },
+      { id: 'speak_5', desc: '跟读 5 次', check: (ctx) => ctx.speakCount >= 5 },
+      { id: 'star_5', desc: '获得 5 颗星星', check: (ctx) => ctx.starsEarned >= 5 },
+      { id: 'review_1', desc: '完成一次复习', check: (ctx) => ctx.reviewDone >= 1 },
+      { id: 'perfect_1', desc: '一次满分通关', check: (ctx) => ctx.perfectCount >= 1 },
+      { id: 'daily_1', desc: '学习 15 分钟', check: (ctx) => ctx.studyMinutes >= 15 },
+    ];
   },
 
   _checkDaily() {
@@ -50,17 +76,7 @@ const Gamification = {
   },
 
   _generateDailyChallenges() {
-    const pool = [
-      { id: 'learn_3', desc: '完成 3 个课时', check: (ctx) => ctx.lessonsDone >= 3 },
-      { id: 'quiz_10', desc: '答对 10 道题', check: (ctx) => ctx.quizCorrect >= 10 },
-      { id: 'streak_3', desc: '连续答对 3 题', check: (ctx) => ctx.bestTodayStreak >= 3 },
-      { id: 'speak_5', desc: '跟读 5 次', check: (ctx) => ctx.speakCount >= 5 },
-      { id: 'star_5', desc: '获得 5 颗星星', check: (ctx) => ctx.starsEarned >= 5 },
-      { id: 'review_1', desc: '完成一次复习', check: (ctx) => ctx.reviewDone >= 1 },
-      { id: 'perfect_1', desc: '一次满分通关', check: (ctx) => ctx.perfectCount >= 1 },
-      { id: 'daily_1', desc: '学习 15 分钟', check: (ctx) => ctx.studyMinutes >= 15 },
-    ];
-    // 每天随机选 3 个挑战
+    const pool = this._getChallengePool();
     const shuffled = [...pool].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, 3).map(c => ({ ...c, done: false }));
   },
