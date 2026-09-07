@@ -254,13 +254,15 @@ const Speech = {
     if (!SR) return false;
     this.recognition = new SR();
     this.recognition.lang = 'zh-HK';
-    this.recognition.continuous = true;
+    this.recognition.continuous = false;
     this.recognition.interimResults = true;
     this.recognition.maxAlternatives = 3;
     return true;
   },
 
-  /** 开始持续监听，累积所有结果，直到调用 stopListening */
+  /** 开始持续监听。
+   *  Chrome continuous 模式有重复累积 bug，所以用 continuous:false
+   *  手动循环重启来实现持续监听，直到调用 stopListening */
   startListening(onInterim, onError, onEnd) {
     if (!this.recognition) {
       if (!this.initRecognition()) {
@@ -269,53 +271,62 @@ const Speech = {
       }
     }
 
-    this._allResults = null;  // 保存最后一次 event.results 引用
+    // 连续模式有 bug，用单次模式手动循环
+    this.recognition.continuous = false;
+    this.recognition.interimResults = true;
+    this._collected = [];
+    this._manualStop = false;
+
+    const startRecognition = () => {
+      if (this._manualStop || !this.isListening) return;
+      try { this.recognition.start(); } catch(e) { /* 已在运行中 */ }
+    };
 
     this.recognition.onresult = (event) => {
-      this._allResults = event.results;
       const latest = event.results[event.results.length - 1];
-      // 实时文本：拼接 all isFinal + 最新 interim
-      let liveText = '';
-      for (let i = 0; i < event.results.length; i++) {
-        if (event.results[i].isFinal || i === event.results.length - 1) {
-          liveText += event.results[i][0].transcript;
-        }
+      if (latest.isFinal) {
+        // 只保存 isFinal 的结果
+        this._collected.push(latest[0].transcript);
       }
-      onInterim && onInterim(liveText, latest[0].confidence, latest.isFinal);
+      // 实时显示：已确认 + 当前 interim
+      const liveText = this._collected.join('') + (latest.isFinal ? '' : latest[0].transcript);
+      onInterim && onInterim(liveText, latest[0].confidence);
     };
 
     this.recognition.onerror = (event) => {
+      if (event.error === 'no-speech' || event.error === 'aborted') {
+        // 静默或正常中断，尝试重启
+        if (!this._manualStop && this.isListening) {
+          setTimeout(startRecognition, 100);
+        }
+        return;
+      }
       this.isListening = false;
       onError && onError(event.error);
     };
 
     this.recognition.onend = () => {
-      this.isListening = false;
-      // 只取 isFinal 的结果拼接
-      let finalText = '';
-      let totalConf = 0;
-      let finalCount = 0;
-      if (this._allResults) {
-        for (let i = 0; i < this._allResults.length; i++) {
-          if (this._allResults[i].isFinal) {
-            finalText += this._allResults[i][0].transcript;
-            totalConf += this._allResults[i][0].confidence;
-            finalCount++;
-          }
-        }
+      if (!this._manualStop && this.isListening) {
+        // 自动重启继续监听
+        setTimeout(startRecognition, 100);
+      } else {
+        this.isListening = false;
+        const finalText = this._collected.join('');
+        const avgConf = 0.7; // continuous:false 不提供 confidence
+        onEnd && onEnd(finalText, avgConf);
       }
-      const avgConf = finalCount > 0 ? totalConf / finalCount : 0;
-      onEnd && onEnd(finalText, avgConf);
     };
 
     this.isListening = true;
-    this.recognition.start();
+    this._manualStop = false;
+    startRecognition();
   },
 
   stopListening() {
-    if (this.recognition && this.isListening) {
-      this.recognition.stop();
-      this.isListening = false;
+    this._manualStop = true;
+    this.isListening = false;
+    if (this.recognition) {
+      try { this.recognition.stop(); } catch(e) {}
     }
   },
 

@@ -817,7 +817,7 @@ const LessonPlayer = {
 
     Speech.startListening(
       // onInterim: 实时更新识别文本
-      (transcript, confidence, isFinal) => {
+      (transcript, confidence) => {
         this._speakState.liveText = transcript;
         this._speakState.confidence = confidence;
         this._render();
