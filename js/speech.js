@@ -254,32 +254,74 @@ const Speech = {
     if (!SR) return false;
     this.recognition = new SR();
     this.recognition.lang = 'zh-HK';
-    this.recognition.continuous = false;
-    this.recognition.interimResults = false;
+    this.recognition.continuous = true;
+    this.recognition.interimResults = true;
     this.recognition.maxAlternatives = 3;
     return true;
   },
 
-  startListening(onResult, onError, onEnd) {
+  /** 开始持续监听，累积所有结果，直到调用 stopListening */
+  startListening(onInterim, onError, onEnd) {
     if (!this.recognition) {
       if (!this.initRecognition()) {
         onError && onError('浏览器不支持语音识别');
         return;
       }
     }
-    this.recognition.onresult = (event) => {
-      const results = event.results[0];
-      onResult && onResult(results[0].transcript, results[0].confidence);
+
+    this._collected = [];  // 累积所有识别结果
+    this._silenceTimer = null;
+
+    const resetSilence = () => {
+      if (this._silenceTimer) clearTimeout(this._silenceTimer);
+      // 2秒无语音输入则自动停止
+      this._silenceTimer = setTimeout(() => {
+        if (this.isListening) {
+          this.stopListening();
+        }
+      }, 2000);
     };
+
+    this.recognition.onresult = (event) => {
+      resetSilence();
+      // 收集所有结果
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const r = event.results[i];
+        this._collected.push({
+          transcript: r[0].transcript,
+          confidence: r[0].confidence,
+          isFinal: r.isFinal
+        });
+      }
+      // 回调最新结果
+      const latest = event.results[event.results.length - 1];
+      onInterim && onInterim(
+        this._collected.map(c => c.transcript).join(''),
+        latest[0].confidence,
+        latest.isFinal,
+        this._collected
+      );
+    };
+
     this.recognition.onerror = (event) => {
+      if (this._silenceTimer) clearTimeout(this._silenceTimer);
       this.isListening = false;
       onError && onError(event.error);
     };
+
     this.recognition.onend = () => {
+      if (this._silenceTimer) clearTimeout(this._silenceTimer);
       this.isListening = false;
-      onEnd && onEnd();
+      // 收集完毕，回调最终结果
+      const finalText = this._collected.map(c => c.transcript).join('');
+      const avgConf = this._collected.length > 0
+        ? this._collected.reduce((s, c) => s + c.confidence, 0) / this._collected.length
+        : 0;
+      onEnd && onEnd(finalText, avgConf);
     };
+
     this.isListening = true;
+    this._collected = [];
     this.recognition.start();
   },
 

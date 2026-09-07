@@ -720,6 +720,7 @@ const LessonPlayer = {
     const isProcessing = ss.status === 'processing';
     const hasResult = ss.status === 'result';
     const hasError = ss.status === 'error';
+    const remaining = Math.max(0, 10 - (ss.elapsed || 0));
 
     return `
       <div class="speak-practice" id="${elemId}">
@@ -735,15 +736,25 @@ const LessonPlayer = {
             id="btn-speak-${elemId}"
             ${isRecording || isProcessing ? 'disabled' : ''}
             onclick="LessonPlayer._startSpeak('${this._esc(targetText)}', '${elemId}')">
-            ${isRecording ? '🔴 聆听中...' : isProcessing ? '⏳ 识别中...' : hasResult ? '🔄 再试一次' : '🎤 点击跟读'}
+            ${isRecording ? `🔴 聆听中 ${remaining}s` : isProcessing ? '⏳ 识别中...' : hasResult ? '🔄 再试一次' : '🎤 点击跟读'}
           </button>
           ${isRecording ? `
-            <button class="btn-speak-cancel" onclick="LessonPlayer._cancelSpeak('${elemId}')">取消</button>
+            <button class="btn-speak-stop" onclick="LessonPlayer._stopSpeak('${elemId}')">⏹ 完成</button>
           ` : ''}
         </div>
 
         <div class="speak-status" id="status-${elemId}">
-          ${isRecording ? '<div class="speak-status-recording"><span class="speak-pulse"></span>正在聆听，请朗读上方粤语句子...</div>' : ''}
+          ${isRecording ? `
+            <div class="speak-status-recording">
+              <span class="speak-pulse"></span>
+              正在聆听，请朗读上方粤语句子...
+              <span class="speak-timer">${remaining}s</span>
+            </div>
+            ${ss.liveText ? `
+            <div class="speak-live-text">
+              <span class="speak-live-label">实时识别：</span>${ss.liveText}
+            </div>` : ''}
+          ` : ''}
           ${isProcessing ? '<div class="speak-status-processing">⏳ 正在识别你的发音...</div>' : ''}
           ${hasResult ? `
             <div class="speak-result">
@@ -786,40 +797,60 @@ const LessonPlayer = {
 
   /** 开始跟读 */
   _startSpeak(targetText, elemId) {
-    this._speakState = { active: true, status: 'listening', targetText, elemId };
+    this._speakState = { active: true, status: 'listening', targetText, elemId, liveText: '', elapsed: 0 };
     this._render();
 
-    // 3秒后自动停止（防止无限录音）
-    const timeout = setTimeout(() => {
+    const startTime = Date.now();
+    const timerInterval = setInterval(() => {
+      if (this._speakState.status === 'listening') {
+        this._speakState.elapsed = Math.round((Date.now() - startTime) / 1000);
+        this._render();
+      }
+    }, 500);
+
+    // 最大 10 秒超时
+    const maxTimeout = setTimeout(() => {
       if (this._speakState.status === 'listening') {
         Speech.stopListening();
-        this._speakState.status = 'processing';
-        this._render();
-        // 如果超时无结果
-        setTimeout(() => {
-          if (this._speakState.status === 'processing') {
-            this._speakState = { active: true, status: 'error', errorMsg: '未检测到语音，请大声朗读', targetText, elemId };
-            this._render();
-          }
-        }, 2000);
       }
-    }, 4000);
+    }, 10000);
 
     Speech.startListening(
-      (transcript, confidence) => {
-        clearTimeout(timeout);
+      // onInterim: 实时更新识别文本
+      (transcript, confidence, isFinal, allResults) => {
+        this._speakState.liveText = transcript;
+        this._speakState.confidence = confidence;
+        this._render();
+      },
+      // onError
+      (error) => {
+        clearInterval(timerInterval);
+        clearTimeout(maxTimeout);
+        this._speakState = {
+          active: true,
+          status: 'error',
+          errorMsg: error === 'not-allowed' ? '请允许麦克风权限后重试' :
+                    error === 'no-speech' ? '未检测到语音，请大声朗读' :
+                    error === 'network' ? '网络错误，请检查网络连接' : `识别失败：${error || '未知错误'}`,
+          targetText, elemId
+        };
+        this._render();
+      },
+      // onEnd: 录音结束，计算最终评分
+      (finalText, avgConfidence) => {
+        clearInterval(timerInterval);
+        clearTimeout(maxTimeout);
         this._speakState.status = 'processing';
         this._render();
 
-        // 模拟识别延迟后显示结果
         setTimeout(() => {
-          const score = this._calcSpeakScore(targetText, transcript, confidence);
+          const score = this._calcSpeakScore(targetText, finalText, avgConfidence);
           const feedback = this._getSpeakFeedback(score);
           this._speakState = {
             active: true,
             status: 'result',
             targetText,
-            userText: transcript,
+            userText: finalText || '(未识别到语音)',
             score,
             feedback,
             elemId
@@ -827,35 +858,15 @@ const LessonPlayer = {
           Gamification.addXp(Math.round(score / 10));
           Gamification.recordCalendar(Math.round(score / 10));
           this._render();
-        }, 600);
-      },
-      (error) => {
-        clearTimeout(timeout);
-        this._speakState = {
-          active: true,
-          status: 'error',
-          errorMsg: error === 'not-allowed' ? '请允许麦克风权限后重试' :
-                    error === 'no-speech' ? '未检测到语音，请大声朗读' :
-                    error === 'network' ? '网络错误，请检查网络连接' : `识别失败：${error || '未知错误'}`,
-          targetText,
-          elemId
-        };
-        this._render();
-      },
-      () => {
-        // onEnd - 如果还没得到结果，标记为处理中
-        if (this._speakState.status === 'listening') {
-          this._speakState.status = 'processing';
-          this._render();
-        }
+        }, 500);
       }
     );
   },
 
-  /** 取消跟读 */
-  _cancelSpeak(elemId) {
+  /** 手动停止跟读 */
+  _stopSpeak(elemId) {
     Speech.stopListening();
-    this._speakState = { active: false, status: 'idle', elemId };
+    this._speakState.status = 'processing';
     this._render();
   },
 
