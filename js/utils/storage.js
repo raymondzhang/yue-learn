@@ -4,7 +4,7 @@
    ========================================================= */
 const Storage = {
   DB_NAME: 'yue_learn_v2',
-  DB_VERSION: 1,
+  DB_VERSION: 2,
   db: null,
   _ready: null,
 
@@ -21,15 +21,14 @@ const Storage = {
       const req = indexedDB.open(this.DB_NAME, this.DB_VERSION);
       req.onupgradeneeded = (e) => {
         const db = e.target.result;
-        if (!db.objectStoreNames.contains('progress')) {
-          db.createObjectStore('progress', { keyPath: 'key' });
+        // 删除旧版本 stores（如果有的话），重新创建
+        const names = db.objectStoreNames;
+        for (let i = names.length - 1; i >= 0; i--) {
+          db.deleteObjectStore(names[i]);
         }
-        if (!db.objectStoreNames.contains('curriculum')) {
-          db.createObjectStore('curriculum', { keyPath: 'key' });
-        }
-        if (!db.objectStoreNames.contains('settings')) {
-          db.createObjectStore('settings', { keyPath: 'key' });
-        }
+        db.createObjectStore('progress', { keyPath: 'key' });
+        db.createObjectStore('curriculum', { keyPath: 'key' });
+        db.createObjectStore('settings', { keyPath: 'key' });
       };
       req.onsuccess = (e) => {
         this.db = e.target.result;
