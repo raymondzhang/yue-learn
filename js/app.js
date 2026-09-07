@@ -6,35 +6,45 @@ const App = {
   ready: false,
 
   async init() {
-    // 初始化 v1 兼容层（Progress, Speech 等）
-    if (typeof AppV1 !== 'undefined' && AppV1.init) {
-      try { await AppV1.init(); } catch(e) { console.warn('AppV1 init error:', e); }
+    try {
+      // 初始化 v1 兼容层（Progress, Speech 等）
+      if (typeof AppV1 !== 'undefined' && AppV1.init) {
+        try { await AppV1.init(); } catch(e) { console.warn('AppV1 init error:', e); }
+      }
+
+      // 初始化 v2 模块
+      await Storage.init();
+      await Gamification.init();
+      await Curriculum.init();
+
+      // 兼容 v1 Progress（如果有旧数据）
+      this._migrateV1Progress();
+
+      // 初始化路由
+      Router
+        .on('/home', () => this.renderHome())
+        .on('/curriculum', () => this.renderCurriculum())
+        .on('/lesson/:stageId/:unitId', (params) => this.renderUnitLessons(params))
+        .on('/lesson/:stageId/:unitId/:lessonIdx', (params) => this.renderLesson(params))
+        .on('/practice', () => this.renderPractice())
+        .on('/stats', () => this.renderStats())
+        .on('/voice-test', () => this.renderVoiceTest());
+
+      Router.init();
+
+      // 初始化语音
+      await Speech.init();
+      this.ready = true;
+      this.updateHeader();
+    } catch (e) {
+      console.error('[App] 初始化失败:', e);
+      document.getElementById('main-content').innerHTML = `
+        <div class="section-view" style="text-align:center;padding:40px 20px">
+          <h2>😢 加载失败</h2>
+          <p style="color:#888;margin:12px 0">${e.message}</p>
+          <button class="btn btn-primary" onclick="location.reload()">🔄 重新加载</button>
+        </div>`;
     }
-
-    // 初始化 v2 模块
-    await Storage.init();
-    await Gamification.init();
-    await Curriculum.init();
-
-    // 兼容 v1 Progress（如果有旧数据）
-    this._migrateV1Progress();
-
-    // 初始化路由
-    Router
-      .on('/home', () => this.renderHome())
-      .on('/curriculum', () => this.renderCurriculum())
-      .on('/lesson/:stageId/:unitId', (params) => this.renderUnitLessons(params))
-      .on('/lesson/:stageId/:unitId/:lessonIdx', (params) => this.renderLesson(params))
-      .on('/practice', () => this.renderPractice())
-      .on('/stats', () => this.renderStats())
-      .on('/voice-test', () => this.renderVoiceTest());
-
-    Router.init();
-
-    // 初始化语音
-    await Speech.init();
-    this.ready = true;
-    this.updateHeader();
   },
 
   /* ========== 迁移 v1 旧数据 ========== */

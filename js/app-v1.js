@@ -21,15 +21,18 @@ var AppV1 = {
 
   updateHeader() {
     const s = Progress.data;
-    document.getElementById('star-count').textContent = s.stars;
+    const starEl = document.getElementById('star-count');
+    if (starEl) starEl.textContent = s.stars;
     const heartsEl = document.getElementById('hearts-display');
-    let h = '';
-    for (let i = 0; i < Progress.data.maxHearts; i++) {
-      h += i < s.hearts
-        ? '<span class="heart full">❤️</span>'
-        : '<span class="heart empty">🤍</span>';
+    if (heartsEl) {
+      let h = '';
+      for (let i = 0; i < Progress.data.maxHearts; i++) {
+        h += i < s.hearts
+          ? '<span class="heart full">❤️</span>'
+          : '<span class="heart empty">🤍</span>';
+      }
+      heartsEl.innerHTML = h;
     }
-    heartsEl.innerHTML = h;
   },
 
   showBadgeUnlock(badge) {
