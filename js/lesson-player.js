@@ -720,7 +720,7 @@ const LessonPlayer = {
     const isProcessing = ss.status === 'processing';
     const hasResult = ss.status === 'result';
     const hasError = ss.status === 'error';
-    const remaining = Math.max(0, 10 - (ss.elapsed || 0));
+    const remaining = Math.max(0, 20 - (ss.elapsed || 0));
 
     return `
       <div class="speak-practice" id="${elemId}">
@@ -747,7 +747,7 @@ const LessonPlayer = {
           ${isRecording ? `
             <div class="speak-status-recording">
               <span class="speak-pulse"></span>
-              正在聆听，请朗读上方粤语句子...
+              正在聆听，唸完点击「⏹ 完成」...
               <span class="speak-timer">${remaining}s</span>
             </div>
             ${ss.liveText ? `
@@ -808,12 +808,12 @@ const LessonPlayer = {
       }
     }, 500);
 
-    // 最大 10 秒超时
+    // 最大 20 秒超时（安全兜底）
     const maxTimeout = setTimeout(() => {
       if (this._speakState.status === 'listening') {
         Speech.stopListening();
       }
-    }, 10000);
+    }, 20000);
 
     Speech.startListening(
       // onInterim: 实时更新识别文本

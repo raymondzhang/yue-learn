@@ -270,20 +270,8 @@ const Speech = {
     }
 
     this._collected = [];  // 累积所有识别结果
-    this._silenceTimer = null;
-
-    const resetSilence = () => {
-      if (this._silenceTimer) clearTimeout(this._silenceTimer);
-      // 2秒无语音输入则自动停止
-      this._silenceTimer = setTimeout(() => {
-        if (this.isListening) {
-          this.stopListening();
-        }
-      }, 2000);
-    };
 
     this.recognition.onresult = (event) => {
-      resetSilence();
       // 收集所有结果
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const r = event.results[i];
@@ -304,13 +292,11 @@ const Speech = {
     };
 
     this.recognition.onerror = (event) => {
-      if (this._silenceTimer) clearTimeout(this._silenceTimer);
       this.isListening = false;
       onError && onError(event.error);
     };
 
     this.recognition.onend = () => {
-      if (this._silenceTimer) clearTimeout(this._silenceTimer);
       this.isListening = false;
       // 收集完毕，回调最终结果
       const finalText = this._collected.map(c => c.transcript).join('');
