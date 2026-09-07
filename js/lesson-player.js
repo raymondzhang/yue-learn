@@ -5,6 +5,7 @@
 const LessonPlayer = {
   current: null,  // { stage, unit, lesson, lessonIndex, unitLessons }
   _state: {},     // 运行时状态
+  _speakState: { active: false, status: 'idle' }, // 跟读状态
 
   /** 加载课时 */
   load(stage, unit, lessonIndex) {
@@ -18,6 +19,7 @@ const LessonPlayer = {
       totalLessons: unit.lessons.length
     };
     this._state = {};
+    this._speakState = { active: false, status: 'idle' };
     this._render();
   },
 
@@ -93,16 +95,16 @@ const LessonPlayer = {
           ${page.translation ? `<div class="story-translation">${page.translation}</div>` : ''}
 
           <!-- 跟读练习 -->
-          <div class="story-speak-section">
-            <p class="story-speak-hint">🎤 跟读练习：先听一遍，然后自己读一遍</p>
-            <div class="story-speak-btns">
-              <button class="btn btn-speak" onclick="Speech.speakCantonese('${this._esc(page.text || '')}')">🔊 听一遍</button>
-              ${Speech.hasRecognition() ? `
-                <button class="btn btn-record" id="btn-story-record" onclick="LessonPlayer._storyRecord()">🎤 跟读</button>
-                <span class="record-status" id="story-record-status"></span>
-              ` : '<span class="voice-warn">⚠️ 需要 Chrome 浏览器才能使用跟读功能</span>'}
+          ${Speech.hasRecognition() ? this._renderSpeakSection(page.text || '', 'story-speak') : `
+          <div class="speak-practice">
+            <div class="speak-target">
+              <div class="speak-target-label">🎯 请跟读：</div>
+              <div class="speak-target-text" onclick="Speech.speakCantonese('${this._esc(page.text || '')}')">
+                ${page.text || ''} <span class="speak-replay">🔊</span>
+              </div>
             </div>
-          </div>
+            <p class="speak-unsupported">⚠️ 请使用 Chrome 浏览器开启跟读评分功能</p>
+          </div>`}
 
           ${page.words ? `
           <div class="story-keywords">
@@ -196,22 +198,6 @@ const LessonPlayer = {
     setTimeout(() => this._render(), 1200);
   },
 
-  _storyRecord() {
-    const page = this.current.lesson.content.pages[this._state.storyPage || 0];
-    if (!page) return;
-    const statusEl = document.getElementById('story-record-status');
-    if (statusEl) statusEl.textContent = '🔴 正在听...请朗读';
-    Speech.startListening(
-      (transcript) => {
-        if (statusEl) statusEl.textContent = `你说：「${transcript}」👍`;
-        Gamification.addXp(5);
-        Gamification.recordCalendar(5);
-      },
-      () => { if (statusEl) statusEl.textContent = '请重试'; },
-      () => {}
-    );
-  },
-
   _storyGo(idx) {
     this._state.storyPage = idx;
     this._render();
@@ -242,11 +228,10 @@ const LessonPlayer = {
             <button class="btn btn-speak" onclick="Speech.speakCantonese('${this._esc(word.cantonese)}')">🔊 听发音</button>
             <button class="btn btn-speak" onclick="Speech.speakSlow('${this._esc(word.cantonese)}')">🐢 慢速</button>
           </div>
-          ${Speech.hasRecognition() ? `
-          <div class="vocab-speak-section">
-            <button class="btn btn-record" id="btn-vocab-record" onclick="LessonPlayer._vocabRecord()">🎤 跟读</button>
-            <div class="record-status" id="vocab-record-status"></div>
-          </div>` : ''}
+          ${Speech.hasRecognition() ? this._renderSpeakSection(word.cantonese || '', 'vocab-speak') : `
+          <div class="speak-practice">
+            <p class="speak-unsupported">⚠️ 请使用 Chrome 浏览器开启跟读评分功能</p>
+          </div>`}
         </div>
         <div class="vocab-progress-row">
           ${words.map((w, i) => `
@@ -285,22 +270,6 @@ const LessonPlayer = {
     this._render();
   },
 
-  _vocabRecord() {
-    const statusEl = document.getElementById('vocab-record-status');
-    const word = this.current.lesson.content.words[this._state.vocabIdx || 0];
-    if (!word) return;
-    statusEl.textContent = '🔴 正在听...请朗读';
-    Speech.startListening(
-      (transcript, confidence) => {
-        statusEl.textContent = `你说的是：「${transcript}」`;
-        Gamification.addXp(5);
-        Gamification.recordCalendar(5);
-      },
-      () => { statusEl.textContent = '识别失败，请重试'; },
-      () => {}
-    );
-  },
-
   /* ===== 对话模式 ===== */
   _renderDialogue(lesson) {
     const lines = lesson.content.lines || [];
@@ -335,11 +304,9 @@ const LessonPlayer = {
             onclick="LessonPlayer._dialogueGo(${idx + 1})">下一句 ➡</button>
         </div>
         <div class="dialogue-roleplay">
-          <p class="roleplay-hint">🎭 角色扮演：跟着读一遍</p>
+          <p class="roleplay-hint">🎭 角色扮演</p>
           <button class="btn btn-speak" onclick="Speech.speakCantonese('${this._esc(line.cantonese)}')">🔊 听一遍</button>
-          ${Speech.hasRecognition() ? `
-            <button class="btn btn-record" onclick="LessonPlayer._dialogueRecord()">🎤 我来读</button>
-            <div id="dialogue-record-status"></div>` : ''}
+          ${Speech.hasRecognition() ? this._renderSpeakSection(line.cantonese || '', 'dialogue-speak') : ''}
         </div>
       </div>`;
   },
@@ -349,22 +316,6 @@ const LessonPlayer = {
     this._render();
     const line = this.current.lesson.content.lines[idx];
     if (line) setTimeout(() => Speech.speakCantonese(line.cantonese), 400);
-  },
-
-  _dialogueRecord() {
-    const line = this.current.lesson.content.lines[this._state.dialogueIdx || 0];
-    if (!line) return;
-    const statusEl = document.getElementById('dialogue-record-status');
-    if (statusEl) statusEl.textContent = '🔴 正在听...';
-    Speech.startListening(
-      (transcript) => {
-        if (statusEl) statusEl.textContent = `你说：「${transcript}」👍`;
-        Gamification.addXp(5);
-        Gamification.recordCalendar(5);
-      },
-      () => { if (statusEl) statusEl.textContent = '请重试'; },
-      () => {}
-    );
   },
 
   /* ===== 测验模式 ===== */
@@ -759,5 +710,194 @@ const LessonPlayer = {
   _esc(s) {
     if (!s) return '';
     return s.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ');
-  }
+  },
+
+  /* ===== 跟读练习（共享组件） ===== */
+  /** 渲染跟读区域 */
+  _renderSpeakSection(targetText, elemId) {
+    const ss = this._speakState;
+    const isRecording = ss.status === 'listening';
+    const isProcessing = ss.status === 'processing';
+    const hasResult = ss.status === 'result';
+    const hasError = ss.status === 'error';
+
+    return `
+      <div class="speak-practice" id="${elemId}">
+        <div class="speak-target">
+          <div class="speak-target-label">🎯 请跟读：</div>
+          <div class="speak-target-text" onclick="Speech.speakCantonese('${this._esc(targetText)}')">
+            ${targetText} <span class="speak-replay">🔊</span>
+          </div>
+        </div>
+
+        <div class="speak-controls">
+          <button class="btn-speak-record ${isRecording ? 'recording' : ''} ${isProcessing ? 'processing' : ''}"
+            id="btn-speak-${elemId}"
+            ${isRecording || isProcessing ? 'disabled' : ''}
+            onclick="LessonPlayer._startSpeak('${this._esc(targetText)}', '${elemId}')">
+            ${isRecording ? '🔴 聆听中...' : isProcessing ? '⏳ 识别中...' : hasResult ? '🔄 再试一次' : '🎤 点击跟读'}
+          </button>
+          ${isRecording ? `
+            <button class="btn-speak-cancel" onclick="LessonPlayer._cancelSpeak('${elemId}')">取消</button>
+          ` : ''}
+        </div>
+
+        <div class="speak-status" id="status-${elemId}">
+          ${isRecording ? '<div class="speak-status-recording"><span class="speak-pulse"></span>正在聆听，请朗读上方粤语句子...</div>' : ''}
+          ${isProcessing ? '<div class="speak-status-processing">⏳ 正在识别你的发音...</div>' : ''}
+          ${hasResult ? `
+            <div class="speak-result">
+              <div class="speak-result-row">
+                <span class="speak-result-label">标准粤语：</span>
+                <span class="speak-result-text">${targetText}</span>
+              </div>
+              <div class="speak-result-row">
+                <span class="speak-result-label">你的发音：</span>
+                <span class="speak-result-text user">${ss.userText || '—'}</span>
+              </div>
+              <div class="speak-result-score">
+                ${this._renderSpeakScore(ss.score || 0)}
+              </div>
+              <div class="speak-result-detail">${ss.feedback || ''}</div>
+            </div>
+          ` : ''}
+          ${hasError ? `
+            <div class="speak-result">
+              <div class="speak-result-error">❌ ${ss.errorMsg || '识别失败，请确保已授权麦克风权限，并重试'}</div>
+            </div>
+          ` : ''}
+        </div>
+      </div>`;
+  },
+
+  /** 渲染评分星星 */
+  _renderSpeakScore(score) {
+    // score: 0-100
+    const stars = score >= 80 ? 3 : score >= 50 ? 2 : score >= 20 ? 1 : 0;
+    const labels = ['再试试！', '有进步！', '很不错！', '太棒了！'];
+    const colors = ['#f44336', '#ff9800', '#4caf50', '#4caf50'];
+    return `
+      <div class="speak-stars">
+        ${[1,2,3].map(i => `<span class="speak-star ${i <= stars ? 'active' : ''}" style="color:${i <= stars ? colors[stars] : '#ddd'}">★</span>`).join('')}
+        <span class="speak-score-text" style="color:${colors[stars]}">${labels[stars]}</span>
+        <span class="speak-score-pct">相似度 ${score}%</span>
+      </div>`;
+  },
+
+  /** 开始跟读 */
+  _startSpeak(targetText, elemId) {
+    this._speakState = { active: true, status: 'listening', targetText, elemId };
+    this._render();
+
+    // 3秒后自动停止（防止无限录音）
+    const timeout = setTimeout(() => {
+      if (this._speakState.status === 'listening') {
+        Speech.stopListening();
+        this._speakState.status = 'processing';
+        this._render();
+        // 如果超时无结果
+        setTimeout(() => {
+          if (this._speakState.status === 'processing') {
+            this._speakState = { active: true, status: 'error', errorMsg: '未检测到语音，请大声朗读', targetText, elemId };
+            this._render();
+          }
+        }, 2000);
+      }
+    }, 4000);
+
+    Speech.startListening(
+      (transcript, confidence) => {
+        clearTimeout(timeout);
+        this._speakState.status = 'processing';
+        this._render();
+
+        // 模拟识别延迟后显示结果
+        setTimeout(() => {
+          const score = this._calcSpeakScore(targetText, transcript, confidence);
+          const feedback = this._getSpeakFeedback(score);
+          this._speakState = {
+            active: true,
+            status: 'result',
+            targetText,
+            userText: transcript,
+            score,
+            feedback,
+            elemId
+          };
+          Gamification.addXp(Math.round(score / 10));
+          Gamification.recordCalendar(Math.round(score / 10));
+          this._render();
+        }, 600);
+      },
+      (error) => {
+        clearTimeout(timeout);
+        this._speakState = {
+          active: true,
+          status: 'error',
+          errorMsg: error === 'not-allowed' ? '请允许麦克风权限后重试' :
+                    error === 'no-speech' ? '未检测到语音，请大声朗读' :
+                    error === 'network' ? '网络错误，请检查网络连接' : `识别失败：${error || '未知错误'}`,
+          targetText,
+          elemId
+        };
+        this._render();
+      },
+      () => {
+        // onEnd - 如果还没得到结果，标记为处理中
+        if (this._speakState.status === 'listening') {
+          this._speakState.status = 'processing';
+          this._render();
+        }
+      }
+    );
+  },
+
+  /** 取消跟读 */
+  _cancelSpeak(elemId) {
+    Speech.stopListening();
+    this._speakState = { active: false, status: 'idle', elemId };
+    this._render();
+  },
+
+  /** 计算发音相似度 */
+  _calcSpeakScore(target, spoken, confidence) {
+    if (!spoken || !target) return confidence ? Math.round(confidence * 100) : 0;
+
+    // 方法1: 字符级匹配
+    const targetChars = target.replace(/\s+/g, '').split('');
+    const spokenChars = spoken.replace(/\s+/g, '').split('');
+    let matchCount = 0;
+    const checked = new Set();
+
+    for (const tc of targetChars) {
+      for (let i = 0; i < spokenChars.length; i++) {
+        if (!checked.has(i) && spokenChars[i] === tc) {
+          matchCount++;
+          checked.add(i);
+          break;
+        }
+      }
+    }
+
+    const charScore = Math.round((matchCount / Math.max(targetChars.length, 1)) * 100);
+
+    // 方法2: 置信度
+    const confScore = confidence ? Math.round(confidence * 100) : 0;
+
+    // 综合评分（字符匹配权重 60%，置信度 40%）
+    const finalScore = confidence
+      ? Math.round(charScore * 0.6 + confScore * 0.4)
+      : charScore;
+
+    return Math.min(100, Math.max(0, finalScore));
+  },
+
+  /** 跟读反馈文案 */
+  _getSpeakFeedback(score) {
+    if (score >= 90) return '发音非常标准，和母语者一样好！🎉';
+    if (score >= 70) return '发音不错，继续练习会更完美！👍';
+    if (score >= 50) return '还可以更好，再听一遍标准发音试试？💪';
+    if (score >= 30) return '和标准发音差距较大，多听几遍再试试！📚';
+    return '识别结果和原句差异较大，请确保用粤语朗读，发音清晰。🔊';
+  },
 };
