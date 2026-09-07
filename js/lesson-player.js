@@ -80,6 +80,7 @@ const LessonPlayer = {
     const idx = this._state.storyPage || 0;
     const page = pages[idx] || {};
     this._state.storyPage = idx;
+    const isLastPage = idx >= pages.length - 1;
 
     return `
       <div class="lesson-body story-body">
@@ -90,13 +91,33 @@ const LessonPlayer = {
             <div class="tap-hint">🔊 点击听粤语</div>
           </div>
           ${page.translation ? `<div class="story-translation">${page.translation}</div>` : ''}
+
+          <!-- 跟读练习 -->
+          <div class="story-speak-section">
+            <p class="story-speak-hint">🎤 跟读练习：先听一遍，然后自己读一遍</p>
+            <div class="story-speak-btns">
+              <button class="btn btn-speak" onclick="Speech.speakCantonese('${this._esc(page.text || '')}')">🔊 听一遍</button>
+              ${Speech.hasRecognition() ? `
+                <button class="btn btn-record" id="btn-story-record" onclick="LessonPlayer._storyRecord()">🎤 跟读</button>
+                <span class="record-status" id="story-record-status"></span>
+              ` : '<span class="voice-warn">⚠️ 需要 Chrome 浏览器才能使用跟读功能</span>'}
+            </div>
+          </div>
+
           ${page.words ? `
           <div class="story-keywords">
+            <p class="kw-title">📝 生词：</p>
             ${page.words.map(w => `
               <span class="keyword-chip" onclick="event.stopPropagation();Speech.speakCantonese('${this._esc(w.cantonese)}')">
                 ${w.cantonese} <small>${w.meaning}</small> 🔊
               </span>
             `).join('')}
+          </div>` : ''}
+
+          ${isLastPage ? `
+          <div class="story-mini-quiz">
+            <p class="mini-quiz-title">🧠 小测验：你记住了吗？</p>
+            ${this._renderStoryMiniQuiz(lesson)}
           </div>` : ''}
         </div>
         <div class="story-nav">
@@ -105,10 +126,90 @@ const LessonPlayer = {
           <div class="story-dots">${pages.map((_, i) =>
             `<span class="story-dot ${i === idx ? 'active' : i < idx ? 'done' : ''}" onclick="LessonPlayer._storyGo(${i})"></span>`
           ).join('')}</div>
-          <button class="btn btn-primary" ${idx >= pages.length - 1 ? 'disabled' : ''}
+          <button class="btn btn-primary" ${isLastPage ? 'disabled' : ''}
             onclick="LessonPlayer._storyGo(${idx + 1})">下一页 ➡</button>
         </div>
+        ${isLastPage ? `
+        <div class="story-complete-section">
+          <button class="btn btn-correct btn-lg" onclick="LessonPlayer._completeLesson()">
+            ✅ 完成学习，获得奖励
+          </button>
+        </div>` : ''}
       </div>`;
+  },
+
+  _storyMiniQuizState: null,
+
+  _renderStoryMiniQuiz(lesson) {
+    // 从故事中提取关键词生成简单测验
+    const pages = lesson.content.pages || [];
+    const allWords = [];
+    pages.forEach(p => {
+      if (p.words) allWords.push(...p.words);
+    });
+    if (allWords.length < 2) return '<p class="mini-quiz-empty">回顾上面的生词吧！</p>';
+
+    // 选 2-3 个词做测验
+    const picked = allWords.sort(() => Math.random() - 0.5).slice(0, Math.min(3, allWords.length));
+    if (!this._state.storyQuiz) {
+      this._state.storyQuiz = { picked, answered: 0, correct: 0 };
+    }
+    const sq = this._state.storyQuiz;
+    const current = picked[sq.answered] || null;
+
+    if (!current) {
+      return `
+        <div class="mini-quiz-result">
+          <p>🎉 答对 ${sq.correct}/${picked.length} 题！</p>
+        </div>`;
+    }
+
+    // 生成干扰选项
+    const others = allWords.filter(w => w.cantonese !== current.cantonese);
+    const distractors = others.sort(() => Math.random() - 0.5).slice(0, 2);
+    const options = [current.meaning, ...distractors.map(w => w.meaning)].sort(() => Math.random() - 0.5);
+
+    return `
+      <div class="mini-quiz-q">
+        <p class="mini-quiz-prompt">「${current.cantonese}」是什么意思？</p>
+        <div class="mini-quiz-opts">
+          ${options.map(opt => `
+            <button class="btn btn-sm btn-outline" onclick="LessonPlayer._storyQuizAnswer('${this._esc(opt)}', '${this._esc(current.meaning)}')">${opt}</button>
+          `).join('')}
+        </div>
+        <span class="mini-quiz-feedback" id="story-quiz-fb"></span>
+      </div>`;
+  },
+
+  _storyQuizAnswer(chosen, correct) {
+    const fb = document.getElementById('story-quiz-fb');
+    if (chosen === correct) {
+      this._state.storyQuiz.correct++;
+      if (fb) fb.innerHTML = '<span class="score-good">✅ 正确！</span>';
+      Speech.speakCantonese('啱咗！');
+    } else {
+      if (fb) fb.innerHTML = `<span class="score-ok">❌ 正确答案是「${correct}」</span>`;
+    }
+    this._state.storyQuiz.answered++;
+    Gamification.addXp(5);
+    Gamification.recordCalendar(5);
+    setTimeout(() => this._render(), 1200);
+  },
+
+  _storyRecord() {
+    const page = this.current.lesson.content.pages[this._state.storyPage || 0];
+    if (!page) return;
+    const statusEl = document.getElementById('story-record-status');
+    if (statusEl) statusEl.textContent = '🔴 正在听...请朗读';
+    Speech.startListening(
+      (transcript) => {
+        if (statusEl) statusEl.textContent = `你说：「${transcript}」👍`;
+        Gamification.addXp(5);
+        Gamification.recordCalendar(5);
+      },
+      () => { if (statusEl) statusEl.textContent = '请重试'; },
+      () => {}
+    );
   },
 
   _storyGo(idx) {
