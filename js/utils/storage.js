@@ -60,11 +60,17 @@ const Storage = {
   async _idbSet(storeName, key, value) {
     if (!this.db) return;
     return new Promise((resolve) => {
-      const tx = this.db.transaction(storeName, 'readwrite');
-      const store = tx.objectStore(storeName);
-      store.put({ key, value });
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => resolve();
+      try {
+        const tx = this.db.transaction(storeName, 'readwrite');
+        const store = tx.objectStore(storeName);
+        store.put({ key, value });
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+      } catch (e) {
+        // 结构化克隆失败（如含函数）时静默降级
+        console.warn('[Storage] IndexedDB put 失败，降级到 localStorage:', e.message);
+        resolve();
+      }
     });
   },
 
@@ -100,9 +106,9 @@ const Storage = {
 
   /** 保存课程进度 */
   async setProgress(data) {
-    if (this.db) {
-      await this._idbSet('progress', 'main', data);
-    }
+    try {
+      if (this.db) await this._idbSet('progress', 'main', data);
+    } catch (e) { console.warn('[Storage] setProgress IDB 失败:', e.message); }
     try {
       localStorage.setItem('yue_learn_v2_progress', JSON.stringify(data));
     } catch {}
@@ -110,9 +116,9 @@ const Storage = {
 
   /** 获取课程状态（单元完成、星级等） */
   async getCurriculumState() {
-    if (this.db) {
-      return await this._idbGetAll('curriculum');
-    }
+    try {
+      if (this.db) return await this._idbGetAll('curriculum');
+    } catch (e) { console.warn('[Storage] getCurriculumState IDB 失败:', e.message); }
     try {
       const raw = localStorage.getItem('yue_learn_v2_curriculum');
       return raw ? JSON.parse(raw) : {};
@@ -121,9 +127,9 @@ const Storage = {
 
   /** 保存课程状态 */
   async setCurriculumState(key, value) {
-    if (this.db) {
-      await this._idbSet('curriculum', key, value);
-    }
+    try {
+      if (this.db) await this._idbSet('curriculum', key, value);
+    } catch (e) { console.warn('[Storage] setCurriculumState IDB 失败:', e.message); }
     try {
       const all = await this.getCurriculumState();
       all[key] = value;
@@ -133,9 +139,9 @@ const Storage = {
 
   /** 获取设置 */
   async getSettings() {
-    if (this.db) {
-      return await this._idbGetAll('settings');
-    }
+    try {
+      if (this.db) return await this._idbGetAll('settings');
+    } catch (e) { console.warn('[Storage] getSettings IDB 失败:', e.message); }
     try {
       const raw = localStorage.getItem('yue_learn_v2_settings');
       return raw ? JSON.parse(raw) : {};
@@ -144,9 +150,9 @@ const Storage = {
 
   /** 保存设置 */
   async setSettings(key, value) {
-    if (this.db) {
-      await this._idbSet('settings', key, value);
-    }
+    try {
+      if (this.db) await this._idbSet('settings', key, value);
+    } catch (e) { console.warn('[Storage] setSettings IDB 失败:', e.message); }
     try {
       const all = await this.getSettings();
       all[key] = value;

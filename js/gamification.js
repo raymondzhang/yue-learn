@@ -34,10 +34,33 @@ const Gamification = {
 
   async _save() {
     const progress = (await Storage.getProgress()) || {};
-    // 深拷贝并移除 check 函数（IndexedDB 不能存储函数）
-    const saveData = JSON.parse(JSON.stringify(this.data));
+    // 构建可序列化副本（剥离函数）
+    const saveData = this._toSerializable();
     progress.gamification = saveData;
     await Storage.setProgress(progress);
+  },
+
+  /** 构建可序列化数据副本（移除所有函数） */
+  _toSerializable() {
+    const d = this.data;
+    return {
+      xp: d.xp,
+      level: d.level,
+      stars: d.stars,
+      badges: [...d.badges],
+      streak: d.streak,
+      bestStreak: d.bestStreak,
+      lastPlayDate: d.lastPlayDate,
+      todayDate: d.todayDate,
+      totalCorrect: d.totalCorrect,
+      totalWrong: d.totalWrong,
+      calendar: { ...d.calendar },
+      dailyChallenges: d.dailyChallenges.map(c => ({
+        id: c.id,
+        desc: c.desc,
+        done: c.done
+      }))
+    };
   },
 
   /** 恢复 dailyChallenges 中的 check 函数 */
