@@ -269,26 +269,19 @@ const Speech = {
       }
     }
 
-    this._collected = [];  // 累积所有识别结果
+    this._allResults = null;  // 保存最后一次 event.results 引用
 
     this.recognition.onresult = (event) => {
-      // 收集所有结果
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const r = event.results[i];
-        this._collected.push({
-          transcript: r[0].transcript,
-          confidence: r[0].confidence,
-          isFinal: r.isFinal
-        });
-      }
-      // 回调最新结果
+      this._allResults = event.results;
       const latest = event.results[event.results.length - 1];
-      onInterim && onInterim(
-        this._collected.map(c => c.transcript).join(''),
-        latest[0].confidence,
-        latest.isFinal,
-        this._collected
-      );
+      // 实时文本：拼接 all isFinal + 最新 interim
+      let liveText = '';
+      for (let i = 0; i < event.results.length; i++) {
+        if (event.results[i].isFinal || i === event.results.length - 1) {
+          liveText += event.results[i][0].transcript;
+        }
+      }
+      onInterim && onInterim(liveText, latest[0].confidence, latest.isFinal);
     };
 
     this.recognition.onerror = (event) => {
@@ -298,16 +291,24 @@ const Speech = {
 
     this.recognition.onend = () => {
       this.isListening = false;
-      // 收集完毕，回调最终结果
-      const finalText = this._collected.map(c => c.transcript).join('');
-      const avgConf = this._collected.length > 0
-        ? this._collected.reduce((s, c) => s + c.confidence, 0) / this._collected.length
-        : 0;
+      // 只取 isFinal 的结果拼接
+      let finalText = '';
+      let totalConf = 0;
+      let finalCount = 0;
+      if (this._allResults) {
+        for (let i = 0; i < this._allResults.length; i++) {
+          if (this._allResults[i].isFinal) {
+            finalText += this._allResults[i][0].transcript;
+            totalConf += this._allResults[i][0].confidence;
+            finalCount++;
+          }
+        }
+      }
+      const avgConf = finalCount > 0 ? totalConf / finalCount : 0;
       onEnd && onEnd(finalText, avgConf);
     };
 
     this.isListening = true;
-    this._collected = [];
     this.recognition.start();
   },
 
