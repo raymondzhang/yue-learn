@@ -3,43 +3,79 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🇭🇰 粤学乐园 — 繁体字 & 粤语学习陪练</title>
-  <meta name="description" content="专为从内地转学到香港的小朋友设计的繁体字和粤语学习工具">
+  <title>🇭🇰 粤学乐园 v2 — 分阶段粤语学习</title>
+  <meta name="description" content="专为小朋友设计的分阶段粤语自主学习平台">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/curriculum.css">
+  <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
 
   <!-- 顶部导航栏 -->
   <header class="app-header">
-    <div class="header-left" onclick="App.navigateTo('home')">
+    <div class="header-left" onclick="Router.navigate('/home')">
       <h1>🇭🇰 粤学乐园</h1>
     </div>
     <div class="header-right">
+      <div class="level-indicator" id="level-display" onclick="Router.navigate('/stats')">Lv.1</div>
       <div class="stars">
         <span>⭐</span>
         <span id="star-count">0</span>
       </div>
-      <div class="hearts" id="hearts-display">
-        <span class="heart full">❤️</span>
-        <span class="heart full">❤️</span>
-        <span class="heart full">❤️</span>
-        <span class="heart full">❤️</span>
-        <span class="heart full">❤️</span>
-      </div>
-      <button class="settings-btn" onclick="App.navigateTo('stats')" title="学习统计">📊</button>
+      <button class="settings-btn" onclick="Router.navigate('/stats')" title="学习统计">📊</button>
     </div>
   </header>
 
+  <!-- 底部导航栏 -->
+  <nav class="bottom-nav">
+    <a href="#/home" class="nav-item">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">首页</span>
+    </a>
+    <a href="#/curriculum" class="nav-item">
+      <span class="nav-icon">🗺️</span>
+      <span class="nav-label">课程</span>
+    </a>
+    <a href="#/practice" class="nav-item">
+      <span class="nav-icon">🧩</span>
+      <span class="nav-label">练习</span>
+    </a>
+    <a href="#/stats" class="nav-item">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">统计</span>
+    </a>
+  </nav>
+
   <!-- 主内容区 -->
   <main id="main-content">
-    <!-- 由 JavaScript 动态渲染 -->
+    <div class="loading">
+      <div class="loading-icon">🔄</div>
+      <p>加载中...</p>
+    </div>
   </main>
 
-  <!-- 脚本加载（注意顺序：数据 → 工具 → 主逻辑） -->
+  <!-- 脚本加载（注意顺序） -->
+  <!-- 数据层 -->
   <script src="js/data/characters.js"></script>
   <script src="js/data/phrases.js"></script>
+  <script src="js/data/stages/stage-0.js"></script>
+  <script src="js/data/stages/stage-1.js"></script>
+  <script src="js/data/curriculum.js"></script>
+
+  <!-- 工具层 -->
+  <script src="js/utils/storage.js"></script>
+  <script src="js/utils/router.js"></script>
+
+  <!-- 模块层 -->
   <script src="js/speech.js"></script>
   <script src="js/progress.js"></script>
+  <script src="js/gamification.js"></script>
+  <script src="js/curriculum.js"></script>
+  <script src="js/lesson-player.js"></script>
+
+  <!-- v1 兼容层（自由练习） -->
+  <script src="js/app-v1.js"></script>
+  <!-- v2 主应用 -->
   <script src="js/app.js"></script>
 
 </body>

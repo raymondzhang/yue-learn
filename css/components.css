@@ -1,0 +1,902 @@
+/* =========================================================
+   Components CSS — 课时播放器 + 各类型课时样式
+   ========================================================= */
+
+/* ===== 课时视图公共 ===== */
+.lesson-view {
+  padding: 16px;
+  padding-bottom: 120px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.lesson-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.lesson-progress-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #888;
+}
+
+.lesson-stage-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: #fff;
+}
+
+.lesson-header-card {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.lesson-type-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.type-story { background: #FFF3E0; color: #E65100; }
+.type-vocab { background: #E3F2FD; color: #1565C0; }
+.type-dialogue { background: #F3E5F5; color: #7B1FA2; }
+.type-quiz { background: #E8F5E9; color: #2E7D32; }
+.type-game { background: #FFF9C4; color: #F57F17; }
+.type-review { background: #FCE4EC; color: #C62828; }
+
+.lesson-header-card h2 {
+  font-size: 1.4rem;
+  margin: 4px 0;
+}
+
+.lesson-subtitle {
+  font-size: 0.85rem;
+  color: #999;
+  margin: 0;
+}
+
+.lesson-done-badge {
+  display: inline-block;
+  background: #E8F5E9;
+  color: #2E7D32;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.lesson-body {
+  margin-bottom: 20px;
+}
+
+/* ===== 故事模式 ===== */
+.story-body {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.story-page {
+  min-height: 200px;
+}
+
+.story-image {
+  text-align: center;
+  font-size: 3rem;
+  padding: 20px;
+  background: #fafafa;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.story-text {
+  font-size: 1.3rem;
+  line-height: 1.8;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.story-text:hover {
+  background: #f0f0f0;
+}
+
+.story-translation {
+  font-size: 0.9rem;
+  color: #888;
+  margin-top: 12px;
+  padding: 0 4px;
+}
+
+.story-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.keyword-chip {
+  background: #E3F2FD;
+  color: #1565C0;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.keyword-chip:hover {
+  background: #BBDEFB;
+}
+
+.keyword-chip small {
+  opacity: 0.7;
+  margin-left: 4px;
+}
+
+.story-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+  gap: 8px;
+}
+
+.story-dots {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.story-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ddd;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.story-dot.active {
+  background: #FF6B6B;
+  width: 24px;
+  border-radius: 5px;
+}
+
+.story-dot.done {
+  background: #4caf50;
+}
+
+/* ===== 词汇模式 ===== */
+.vocab-body {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.vocab-card-big {
+  text-align: center;
+  padding: 30px 20px;
+}
+
+.vocab-display {
+  margin-bottom: 20px;
+}
+
+.vocab-word {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.vocab-jp {
+  font-size: 1rem;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.vocab-meaning {
+  font-size: 1.2rem;
+  color: #555;
+  font-weight: 600;
+}
+
+.vocab-note {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: #888;
+  background: #FFF8E1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.vocab-audio-btns {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.vocab-speak-section {
+  margin-top: 12px;
+}
+
+.vocab-progress-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+
+.vocab-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.vocab-dot.active {
+  background: #FF6B6B;
+  color: #fff;
+  transform: scale(1.2);
+}
+
+.vocab-dot.done {
+  background: #4caf50;
+  color: #fff;
+}
+
+.vocab-nav {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* ===== 对话模式 ===== */
+.dialogue-body {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.dialogue-scene {
+  margin-bottom: 20px;
+}
+
+.dialogue-scene-title {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #888;
+  background: #f5f5f5;
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.dialogue-bubble {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+}
+
+.dialogue-bubble.left {
+  flex-direction: row;
+}
+
+.dialogue-bubble.right {
+  flex-direction: row-reverse;
+}
+
+.bubble-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.bubble-content {
+  flex: 1;
+  max-width: 80%;
+}
+
+.bubble-cantonese {
+  background: #E3F2FD;
+  padding: 12px 16px;
+  border-radius: 14px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  line-height: 1.5;
+}
+
+.dialogue-bubble.right .bubble-cantonese {
+  background: #E8F5E9;
+}
+
+.bubble-cantonese:hover {
+  background: #BBDEFB;
+}
+
+.dialogue-bubble.right .bubble-cantonese:hover {
+  background: #C8E6C9;
+}
+
+.bubble-jp {
+  font-size: 0.75rem;
+  color: #aaa;
+  margin-top: 4px;
+  padding: 0 8px;
+}
+
+.bubble-meaning {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 2px;
+  padding: 0 8px;
+}
+
+.dialogue-note {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #888;
+  background: #FFF8E1;
+  padding: 8px;
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
+.dialogue-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 16px 0;
+}
+
+.dialogue-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.dialogue-roleplay {
+  text-align: center;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 10px;
+  margin-top: 12px;
+}
+
+.roleplay-hint {
+  font-size: 0.85rem;
+  color: #888;
+  margin: 0 0 8px;
+}
+
+/* ===== 测验模式 ===== */
+.quiz-body {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.quiz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.quiz-progress {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #888;
+}
+
+.quiz-score {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.quiz-prompt-card {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.quiz-prompt {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.quiz-prompt-big {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #333;
+  margin: 8px 0;
+}
+
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quiz-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #fafafa;
+  border: 2px solid #eee;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1rem;
+}
+
+.quiz-option:hover:not(.disabled) {
+  border-color: #FF6B6B;
+  background: #FFF5F5;
+}
+
+.quiz-option.disabled {
+  pointer-events: none;
+}
+
+.quiz-option.correct {
+  border-color: #4caf50;
+  background: #E8F5E9;
+}
+
+.quiz-option.wrong {
+  border-color: #f44336;
+  background: #FFEBEE;
+}
+
+.opt-letter {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.opt-text {
+  flex: 1;
+}
+
+/* ===== 游戏模式 ===== */
+.game-body {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.game-instruction {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #888;
+  margin-bottom: 16px;
+  padding: 8px;
+  background: #FFF8E1;
+  border-radius: 8px;
+}
+
+.game-placeholder {
+  text-align: center;
+  padding: 40px;
+}
+
+.game-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+.game-hint {
+  font-size: 0.85rem;
+  color: #bbb;
+}
+
+/* 配对游戏 */
+.match-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.match-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.match-card {
+  padding: 12px;
+  border-radius: 10px;
+  border: 2px solid #eee;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+}
+
+.match-card:hover {
+  border-color: #FF6B6B;
+}
+
+.match-card.selected {
+  border-color: #FF6B6B;
+  background: #FFF5F5;
+}
+
+.match-card.left {
+  background: #E3F2FD;
+}
+
+.match-card.right {
+  background: #E8F5E9;
+}
+
+.match-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.match-speaker {
+  font-size: 0.9rem;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.match-speaker:hover {
+  opacity: 1;
+}
+
+.match-feedback {
+  text-align: center;
+  margin-top: 12px;
+  min-height: 24px;
+}
+
+.match-wrong {
+  color: #f44336;
+  font-weight: 600;
+}
+
+/* ===== 复习模式 ===== */
+.review-body {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.review-summary {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.review-stat {
+  flex: 1;
+  text-align: center;
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.review-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.review-stat-label {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 2px;
+}
+
+.review-weak {
+  margin-bottom: 16px;
+}
+
+.review-weak h3 {
+  font-size: 0.95rem;
+  margin: 0 0 10px;
+}
+
+.review-weak-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #FFF3E0;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  cursor: pointer;
+}
+
+.review-weak-name {
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.review-weak-score {
+  font-size: 0.75rem;
+  color: #E65100;
+  font-weight: 600;
+}
+
+.review-all-good {
+  text-align: center;
+  padding: 30px;
+}
+
+.review-actions {
+  text-align: center;
+  margin-top: 16px;
+}
+
+/* ===== 完成视图 ===== */
+.completion-view {
+  text-align: center;
+  padding: 30px 0;
+}
+
+.complete-icon {
+  font-size: 3.5rem;
+  margin-bottom: 12px;
+}
+
+.result-stars {
+  font-size: 1.5rem;
+  margin: 8px 0;
+}
+
+.result-stats {
+  margin: 16px 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.result-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.new-badges {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+
+.new-badge {
+  background: #FFF8E1;
+  border-radius: 10px;
+  padding: 10px 14px;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.new-badge .badge-icon {
+  font-size: 1.5rem;
+}
+
+.new-badge .badge-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #333;
+  margin-top: 2px;
+}
+
+/* ===== 课时底部导航 ===== */
+.lesson-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-top: 1px solid #eee;
+  padding: 10px 16px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  z-index: 99;
+}
+
+.lesson-footer .lesson-progress-bar {
+  height: 3px;
+  background: #eee;
+  border-radius: 2px;
+  margin-bottom: 10px;
+}
+
+.lesson-footer-btns {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* ===== 录音按钮 ===== */
+.btn-record {
+  background: #f44336;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-record:hover {
+  background: #d32f2f;
+}
+
+.btn-record.recording {
+  background: #9e9e9e;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.record-status {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 8px;
+  min-height: 20px;
+}
+
+/* ===== 通用按钮增强 ===== */
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-correct {
+  background: #4caf50;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-correct:hover {
+  background: #388e3c;
+}
+
+.btn-wrong {
+  background: #ff9800;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  border-radius: 8px;
+  background: #f0f0f0;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-sm:hover {
+  background: #e0e0e0;
+}
+
+/* ===== 加载 ===== */
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.loading-icon {
+  font-size: 2rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loading p {
+  color: #888;
+  margin-top: 10px;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 480px) {
+  .lesson-view {
+    padding: 12px;
+    padding-bottom: 120px;
+  }
+
+  .vocab-word {
+    font-size: 2rem;
+  }
+
+  .match-grid {
+    gap: 8px;
+  }
+
+  .match-card {
+    padding: 10px 8px;
+    font-size: 0.85rem;
+  }
+
+  .story-text {
+    font-size: 1.1rem;
+  }
+
+  .quiz-prompt-big {
+    font-size: 1.8rem;
+  }
+}

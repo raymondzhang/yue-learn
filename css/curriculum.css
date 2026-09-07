@@ -1,0 +1,763 @@
+/* =========================================================
+   Curriculum CSS — 课程树 + 阶段 + 单元样式
+   ========================================================= */
+
+/* ===== 课程树视图 ===== */
+.curriculum-view {
+  padding: 16px;
+  padding-bottom: 80px;
+}
+
+.curriculum-header {
+  margin-bottom: 24px;
+}
+
+.curriculum-header h2 {
+  font-size: 1.5rem;
+  margin: 0 0 12px;
+}
+
+.curriculum-overall {
+  display: flex;
+  gap: 16px;
+  margin: 12px 0;
+}
+
+.overall-stat {
+  flex: 1;
+  text-align: center;
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 12px 8px;
+}
+
+.overall-value {
+  display: block;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.overall-label {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+/* ===== 阶段树 ===== */
+.stage-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.stage-node {
+  position: relative;
+}
+
+.stage-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 40px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+}
+
+.stage-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.stage-dot.unlocked {
+  background: #e8f5e9;
+  border: 2px solid #4caf50;
+}
+
+.stage-dot.done {
+  background: #e8f5e9;
+}
+
+.stage-dot.locked {
+  background: #f5f5f5;
+  border: 2px solid #ddd;
+}
+
+.stage-line {
+  width: 2px;
+  flex: 1;
+  background: #ddd;
+  min-height: 20px;
+}
+
+.stage-card {
+  margin-left: 44px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+
+.stage-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+.stage-card.locked {
+  opacity: 0.6;
+}
+
+.stage-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stage-level {
+  background: #f0f0f0;
+  color: #666;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.stage-info {
+  flex: 1;
+}
+
+.stage-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.stage-subtitle {
+  font-size: 0.8rem;
+  color: #999;
+  margin-top: 2px;
+}
+
+.stage-progress-badge {
+  font-size: 0.8rem;
+  color: #999;
+  font-weight: 600;
+}
+
+.stage-progress-bar {
+  margin-top: 10px;
+  height: 4px;
+  background: #eee;
+  border-radius: 2px;
+}
+
+.stage-lock-hint {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: #bbb;
+  text-align: center;
+}
+
+/* ===== 阶段下的单元 ===== */
+.stage-units {
+  margin-left: 44px;
+  padding-bottom: 8px;
+}
+
+.unit-node {
+  display: flex;
+  position: relative;
+}
+
+.unit-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 32px;
+  flex-shrink: 0;
+}
+
+.unit-line {
+  width: 2px;
+  height: 20px;
+  background: #e0e0e0;
+}
+
+.unit-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  background: #fafafa;
+  border: 1.5px solid #e0e0e0;
+}
+
+.unit-card {
+  flex: 1;
+  background: #fafafa;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.unit-card:hover {
+  background: #f0f0f0;
+}
+
+.unit-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.unit-icon {
+  font-size: 1.2rem;
+}
+
+.unit-info {
+  flex: 1;
+}
+
+.unit-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #444;
+}
+
+.unit-count {
+  font-size: 0.75rem;
+  color: #999;
+  margin-top: 2px;
+}
+
+.unit-arrow {
+  font-size: 0.7rem;
+  color: #ccc;
+}
+
+.unit-progress-bar {
+  margin-top: 8px;
+  height: 3px;
+  background: #eee;
+  border-radius: 2px;
+}
+
+/* ===== 单元课时列表 ===== */
+.unit-lessons-view {
+  padding: 16px;
+  padding-bottom: 80px;
+}
+
+.unit-lessons-header {
+  margin-bottom: 20px;
+}
+
+.unit-header-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  margin-top: 12px;
+}
+
+.unit-header-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.unit-icon-lg {
+  font-size: 2rem;
+}
+
+.unit-stage-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.unit-header-top h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.unit-progress-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.unit-progress-info .progress-bar {
+  flex: 1;
+  height: 4px;
+  background: #eee;
+  border-radius: 2px;
+}
+
+.unit-progress-info span {
+  font-size: 0.8rem;
+  color: #888;
+  white-space: nowrap;
+}
+
+/* ===== 课时列表项 ===== */
+.lesson-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lesson-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+
+.lesson-item:hover {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.lesson-item.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lesson-item.done {
+  background: #f8fdf8;
+}
+
+.lesson-item-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.lesson-item.done .lesson-item-num {
+  background: #e8f5e9;
+}
+
+.lesson-item-content {
+  flex: 1;
+}
+
+.lesson-item-type {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+.lesson-item-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #333;
+  margin-top: 2px;
+}
+
+.lesson-item-sub {
+  font-size: 0.75rem;
+  color: #aaa;
+  margin-top: 1px;
+}
+
+.lesson-item-arrow {
+  font-size: 0.7rem;
+  color: #ccc;
+}
+
+/* ===== 底部导航栏 ===== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  z-index: 100;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #999;
+  font-size: 0.7rem;
+  gap: 2px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  transition: color 0.2s;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  color: #FF6B6B;
+}
+
+.nav-icon {
+  font-size: 1.3rem;
+}
+
+/* ===== 等级显示 ===== */
+.level-indicator {
+  background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-right: 4px;
+}
+
+.level-badge-home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.level-num {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #FF6B6B;
+}
+
+.level-xp-bar {
+  width: 60px;
+  height: 4px;
+  background: #eee;
+  border-radius: 2px;
+}
+
+.level-xp-text {
+  font-size: 0.65rem;
+  color: #999;
+}
+
+/* ===== 首页继续学习卡片 ===== */
+.continue-section {
+  cursor: pointer;
+}
+
+.continue-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  margin-top: 8px;
+}
+
+.continue-stage {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.continue-info {
+  flex: 1;
+}
+
+.continue-unit {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+.continue-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin-top: 2px;
+}
+
+.continue-type {
+  font-size: 0.75rem;
+  color: #aaa;
+  margin-top: 2px;
+}
+
+/* ===== 每日挑战 ===== */
+.challenge-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.challenge-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #fafafa;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.challenge-item.done {
+  background: #f0faf0;
+  color: #888;
+  text-decoration: line-through;
+}
+
+.challenge-check {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* ===== 快捷入口 ===== */
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.quick-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  border-top: 3px solid var(--accent);
+}
+
+.quick-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+
+.quick-icon {
+  font-size: 1.8rem;
+  margin-bottom: 6px;
+}
+
+.quick-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #444;
+}
+
+/* ===== 首页通用 ===== */
+.home-section {
+  margin-bottom: 20px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #333;
+}
+
+.section-arrow {
+  font-size: 0.7rem;
+  color: #ccc;
+}
+
+.section-meta {
+  font-size: 0.75rem;
+  color: #999;
+  margin-top: 4px;
+}
+
+.section-desc {
+  font-size: 0.8rem;
+  color: #999;
+  margin: 0;
+}
+
+/* ===== 统计页等级卡片 ===== */
+.level-card {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 14px;
+  padding: 20px;
+  color: #fff;
+  margin-bottom: 16px;
+}
+
+.level-display {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.level-big {
+  font-size: 2.2rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.level-progress-section {
+  flex: 1;
+}
+
+.level-progress-section .progress-bar {
+  background: rgba(255,255,255,0.3);
+  height: 6px;
+  border-radius: 3px;
+}
+
+.level-progress-section .progress-fill {
+  background: #fff;
+}
+
+.level-xp-detail {
+  font-size: 0.75rem;
+  margin-top: 4px;
+  opacity: 0.8;
+}
+
+/* ===== 日历热力图 ===== */
+.calendar-section {
+  margin: 20px 0;
+}
+
+.calendar-section h3 {
+  font-size: 1rem;
+  margin: 0 0 10px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #666;
+  background: #f0f0f0;
+}
+
+.calendar-day.level-1 { background: #c8e6c9; color: #2e7d32; }
+.calendar-day.level-2 { background: #81c784; color: #1b5e20; }
+.calendar-day.level-3 { background: #4caf50; color: #fff; }
+.calendar-day.level-4 { background: #2e7d32; color: #fff; }
+
+.calendar-legend {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  font-size: 0.7rem;
+  color: #888;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legend-box {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.legend-box.level-0 { background: #f0f0f0; }
+.legend-box.level-1 { background: #c8e6c9; }
+.legend-box.level-2 { background: #81c784; }
+.legend-box.level-3 { background: #4caf50; }
+.legend-box.level-4 { background: #2e7d32; }
+
+/* ===== 徽章墙 ===== */
+.badges-section {
+  margin: 20px 0;
+}
+
+.badges-section h3 {
+  font-size: 1rem;
+  margin: 0 0 10px;
+}
+
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.badge-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px 8px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.badge-card.locked {
+  opacity: 0.5;
+  background: #fafafa;
+}
+
+.badge-card .badge-icon {
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+}
+
+.badge-card .badge-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.badge-card .badge-desc {
+  font-size: 0.65rem;
+  color: #999;
+  margin-top: 2px;
+}
