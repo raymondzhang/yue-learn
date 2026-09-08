@@ -283,6 +283,12 @@ var AppV1 = {
 
   /* ===== 闪卡模式 ===== */
   startFlashcards(el, params) {
+    // 兼容 onclick 直接调用
+    if (el && typeof el === 'object' && !(el instanceof Element)) {
+      params = el;
+      el = document.getElementById('main-content');
+    }
+    params = params || {};
     let chars;
     if (params.categoryId) {
       const cat = CHARACTER_DATA.categories.find(c => c.id === params.categoryId);
@@ -793,6 +799,12 @@ var AppV1 = {
   },
 
   startListening(el, params) {
+    // 兼容 onclick 直接调用
+    if (el && typeof el === 'object' && !(el instanceof Element)) {
+      params = el;
+      el = document.getElementById('main-content');
+    }
+    params = params || {};
     // 复用 quiz engine
     let typeMap = {
       char: 'listen',
@@ -898,6 +910,12 @@ var AppV1 = {
   },
 
   startSpeaking(el, params) {
+    // 兼容 onclick 直接调用
+    if (el && typeof el === 'object' && !(el instanceof Element)) {
+      params = el;
+      el = document.getElementById('main-content');
+    }
+    params = params || {};
     let items;
     if (params.mode === 'word') {
       items = getAllChars().sort(() => Math.random() - 0.5).slice(0, 10).map(c => ({
