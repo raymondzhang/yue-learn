@@ -637,6 +637,12 @@ var AppV1 = {
   },
 
   startQuiz(el, params) {
+    // 兼容 onclick 直接调用：AppV1.startQuiz({type:'s2t'}) 时 el 是参数对象
+    if (el && typeof el === 'object' && !(el instanceof Element)) {
+      params = el;
+      el = document.getElementById('main-content');
+    }
+    params = params || {};
     if (Progress.data.hearts <= 0) {
       return this.navigateTo('quiz');
     }
