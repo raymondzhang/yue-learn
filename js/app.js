@@ -404,7 +404,7 @@ const App = {
             ${allBadges.map(b => `
               <div class="badge-card ${b.earned ? 'earned' : 'locked'}">
                 <div class="badge-icon">${b.earned ? b.icon : '🔒'}</div>
-                <div class="badge-name">${b.earned ? b.name : '???'}</div>
+                <div class="badge-name">${b.name}</div>
                 <div class="badge-desc">${b.earned ? b.desc : '尚未解锁'}</div>
               </div>
             `).join('')}
