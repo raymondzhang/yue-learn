@@ -9,6 +9,10 @@ const LessonPlayer = {
 
   /** 加载课时 */
   load(stage, unit, lessonIndex) {
+    // 清理之前可能残留的语音识别
+    if (this._speakState && this._speakState.active) {
+      Speech.stopListening();
+    }
     const lesson = unit.lessons[lessonIndex];
     this.current = {
       stage,
@@ -1207,7 +1211,15 @@ const LessonPlayer = {
     const timerInterval = setInterval(() => {
       if (this._speakState.status === 'listening') {
         this._speakState.elapsed = Math.round((Date.now() - startTime) / 1000);
-        this._render();
+        const remaining = Math.max(0, 20 - this._speakState.elapsed);
+        // 直接更新 DOM，不整页重渲染（避免 abort 掉 SpeechRecognition）
+        const btn = document.getElementById(`btn-speak-${elemId}`);
+        if (btn) btn.innerHTML = `🔴 聆听中 ${remaining}s`;
+        const statusEl = document.getElementById(`status-${elemId}`);
+        if (statusEl) {
+          const timerSpan = statusEl.querySelector('.speak-timer');
+          if (timerSpan) timerSpan.textContent = `${remaining}s`;
+        }
       }
     }, 500);
 
@@ -1219,11 +1231,22 @@ const LessonPlayer = {
     }, 20000);
 
     Speech.startListening(
-      // onInterim: 实时更新识别文本
+      // onInterim: 实时更新识别文本（直接 DOM 操作，不整页重渲染）
       (transcript, confidence) => {
         this._speakState.liveText = transcript;
         this._speakState.confidence = confidence;
-        this._render();
+        const statusEl = document.getElementById(`status-${elemId}`);
+        if (statusEl) {
+          let liveEl = statusEl.querySelector('.speak-live-text');
+          if (!liveEl && transcript) {
+            liveEl = document.createElement('div');
+            liveEl.className = 'speak-live-text';
+            liveEl.innerHTML = '<span class="speak-live-label">实时识别：</span>' + transcript;
+            statusEl.appendChild(liveEl);
+          } else if (liveEl) {
+            liveEl.innerHTML = '<span class="speak-live-label">实时识别：</span>' + transcript;
+          }
+        }
       },
       // onError
       (error) => {

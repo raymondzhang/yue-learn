@@ -264,6 +264,11 @@ const Speech = {
    *  Chrome continuous 模式有重复累积 bug，所以用 continuous:false
    *  手动循环重启来实现持续监听，直到调用 stopListening */
   startListening(onInterim, onError, onEnd) {
+    // 先停止之前可能残留的识别
+    if (this.isListening) {
+      this.stopListening();
+    }
+
     if (!this.recognition) {
       if (!this.initRecognition()) {
         onError && onError('浏览器不支持语音识别');
@@ -276,10 +281,23 @@ const Speech = {
     this.recognition.interimResults = true;
     this._collected = [];
     this._manualStop = false;
+    this._restartCount = 0;
 
     const startRecognition = () => {
       if (this._manualStop || !this.isListening) return;
-      try { this.recognition.start(); } catch(e) { /* 已在运行中 */ }
+      try {
+        this.recognition.start();
+      } catch(e) {
+        // 如果已经在运行中，先 stop 再 start
+        if (e.name === 'InvalidStateError') {
+          try { this.recognition.stop(); } catch(_) {}
+          setTimeout(() => {
+            if (!this._manualStop && this.isListening) {
+              try { this.recognition.start(); } catch(_) {}
+            }
+          }, 50);
+        }
+      }
     };
 
     this.recognition.onresult = (event) => {
@@ -297,7 +315,14 @@ const Speech = {
       if (event.error === 'no-speech' || event.error === 'aborted') {
         // 静默或正常中断，尝试重启
         if (!this._manualStop && this.isListening) {
-          setTimeout(startRecognition, 100);
+          this._restartCount++;
+          // 防止无限重启：最多重试 3 次
+          if (this._restartCount <= 3) {
+            setTimeout(startRecognition, 200);
+          } else {
+            this.isListening = false;
+            onError && onError('no-speech');
+          }
         }
         return;
       }
