@@ -25,6 +25,11 @@ const LessonPlayer = {
     this._state = {};
     this._speakState = { active: false, status: 'idle' };
     this._render();
+
+    // 自动播放音频（仅在初始加载时，避免后续 _render() 重渲染时重复触发）
+    if (lesson.type === 'vocab' && lesson.content && lesson.content.words) {
+      setTimeout(() => this._playVocabAudio(0), 600);
+    }
   },
 
   _render() {
@@ -66,10 +71,6 @@ const LessonPlayer = {
     el.scrollTop = 0;
     window.scrollTo(0, 0);
 
-    // 自动播放音频（如果有）
-    if (lesson.type === 'vocab' && lesson.content && lesson.content.words) {
-      setTimeout(() => this._playVocabAudio(0), 600);
-    }
   },
 
   _typeLabel(type) {
