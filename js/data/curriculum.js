@@ -32,7 +32,7 @@ const CURRICULUM_DATA = {
       icon: '💬',
       color: '#45B7D1',
       description: '在教室、餐厅、街道、商店等场景中进行完整对话，掌握日常交际粤语。',
-      units: [] // Phase 3
+      units: STAGE_2_UNITS
     },
     {
       id: 'stage-3',
@@ -42,7 +42,7 @@ const CURRICULUM_DATA = {
       icon: '🎯',
       color: '#96CEB4',
       description: '讲故事、表达感受、了解香港文化，用粤语进行更复杂的表达。',
-      units: [] // Phase 3
+      units: STAGE_3_UNITS
     },
     {
       id: 'stage-4',
@@ -51,8 +51,8 @@ const CURRICULUM_DATA = {
       subtitle: '自主表达·长篇故事',
       icon: '🏆',
       color: '#DDA0DD',
-      description: '自主表达、讲长篇故事、唱粤语歌，达到日常流利水平。',
-      units: [] // Phase 3
+      description: '自主表达、讲长篇故事、唱粤语儿歌，达到日常流利水平。',
+      units: STAGE_4_UNITS
     }
   ]
 };

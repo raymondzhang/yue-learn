@@ -436,6 +436,9 @@ const LessonPlayer = {
   _renderGame(lesson) {
     const gameType = lesson.content.gameType || 'match';
     if (gameType === 'match') return this._renderMatchGame(lesson);
+    if (gameType === 'word-order') return this._renderWordOrderGame(lesson);
+    if (gameType === 'fill-blank') return this._renderFillBlankGame(lesson);
+    if (gameType === 'sound-picture') return this._renderSoundPictureGame(lesson);
 
     return `
       <div class="lesson-body game-body">
@@ -478,7 +481,8 @@ const LessonPlayer = {
           <div class="match-column">
             ${this._state.matchLeft.filter(item => !matched.has(item.id)).map(item => `
               <div class="match-card left ${selected && selected.id === item.id && selected.side === 'left' ? 'selected' : ''}"
-                onclick="LessonPlayer._matchSelect(${item.id}, 'left', '${this._esc(item.text)}')">
+                data-id="${item.id}" data-side="left" data-text="${item.text.replace(/"/g, '&quot;')}"
+                onclick="LessonPlayer._matchSelect(this)">
                 <span class="match-text">${item.text}</span>
                 <span class="match-speaker" onclick="event.stopPropagation();Speech.speakCantonese('${this._esc(item.text)}')">🔊</span>
               </div>
@@ -487,7 +491,8 @@ const LessonPlayer = {
           <div class="match-column">
             ${this._state.matchRight.filter(item => !matched.has(item.id)).map(item => `
               <div class="match-card right ${selected && selected.id === item.id && selected.side === 'right' ? 'selected' : ''}"
-                onclick="LessonPlayer._matchSelect(${item.id}, 'right', '${this._esc(item.text)}')">
+                data-id="${item.id}" data-side="right" data-text="${item.text.replace(/"/g, '&quot;')}"
+                onclick="LessonPlayer._matchSelect(this)">
                 <span class="match-text">${item.text}</span>
               </div>
             `).join('')}
@@ -497,23 +502,22 @@ const LessonPlayer = {
       </div>`;
   },
 
-  _matchSelect(id, side, text) {
+  _matchSelect(el) {
+    const id = parseInt(el.dataset.id);
+    const side = el.dataset.side;
+    const text = el.dataset.text;
     const selected = this._state.matchSelected;
     if (!selected) {
       this._state.matchSelected = { id, side, text };
       this._render();
       return;
     }
-    // 第二个选择
     if (selected.side === side) {
-      // 同侧，切换选择
       this._state.matchSelected = { id, side, text };
       this._render();
       return;
     }
-    // 不同侧，检查配对
     if (selected.id === id) {
-      // 配对成功
       if (!this._state.matchMatched) this._state.matchMatched = new Set();
       this._state.matchMatched.add(id);
       this._state.matchSelected = null;
@@ -523,7 +527,6 @@ const LessonPlayer = {
       Speech.speakCantonese(selected.side === 'left' ? selected.text : text);
       this._render();
     } else {
-      // 配对失败
       Gamification.addWrong();
       const fb = document.getElementById('match-feedback');
       if (fb) {
@@ -533,6 +536,406 @@ const LessonPlayer = {
       this._state.matchSelected = null;
       this._render();
     }
+  },
+
+  /* ===== 排字成句游戏 ===== */
+  _renderWordOrderGame(lesson) {
+    const questions = lesson.content.questions || [];
+    const idx = this._state.woIdx || 0;
+    this._state.woIdx = idx;
+    this._state.woCorrect = this._state.woCorrect || 0;
+
+    if (idx >= questions.length) {
+      return this._renderWordOrderResult(questions.length);
+    }
+
+    const q = questions[idx];
+    const words = q.words || [];
+    const selected = this._state.woSelected || [];
+    this._state.woSelected = selected;
+
+    // 播放提示音
+    if (selected.length === 0 && !this._state.woPlayed) {
+      this._state.woPlayed = true;
+      setTimeout(() => Speech.speakCantonese(q.answer), 500);
+    }
+
+    const remaining = words.map((w, i) => ({ word: w, idx: i })).filter(item => !selected.includes(item.idx));
+    const allDone = selected.length === words.length;
+    const userSentence = selected.map(i => words[i]).join('');
+    const isCorrect = allDone && userSentence === q.answer;
+
+    return `
+      <div class="lesson-body game-body">
+        <div class="game-header">
+          <div class="quiz-progress">${idx + 1} / ${questions.length}</div>
+          <div class="quiz-score">✅${this._state.woCorrect}</div>
+        </div>
+        <div class="game-instruction">📝 点击词语，排出正确的粤语句子</div>
+        ${q.hint ? `<div class="game-hint-text">💡 ${q.hint}</div>` : ''}
+        <div class="wo-meaning">普通话：${q.meaning}</div>
+        <div class="wo-target-area">
+          ${selected.length > 0 ? `
+            <div class="wo-selected-words">${selected.map(i => `<span class="wo-word selected">${words[i]}</span>`).join('')}</div>
+          ` : `<div class="wo-placeholder">👇 点击下方词语组句</div>`}
+        </div>
+        ${!allDone ? `
+          <div class="wo-word-pool">
+            ${remaining.map(item => `
+              <div class="wo-word-tile" data-idx="${item.idx}" onclick="LessonPlayer._woSelect(this)">${item.word}</div>
+            `).join('')}
+          </div>
+        ` : ''}
+        <div class="wo-actions">
+          ${selected.length > 0 && !allDone ? `
+            <button class="btn btn-secondary btn-sm" onclick="LessonPlayer._woUndo()">↩ 撤回</button>
+          ` : ''}
+          ${selected.length > 0 ? `
+            <button class="btn btn-secondary btn-sm" onclick="LessonPlayer._woReset()">🔄 重来</button>
+          ` : ''}
+        </div>
+        ${allDone ? `
+          <div class="wo-result-area">
+            <div class="wo-result-sentence ${isCorrect ? 'correct' : 'wrong'}">
+              ${isCorrect ? '✅' : '❌'} ${userSentence}
+            </div>
+            ${!isCorrect ? `<div class="wo-correct-answer">正确答案：${q.answer}</div>` : ''}
+            <div class="wo-result-actions">
+              <button class="btn ${isCorrect ? 'btn-correct' : 'btn-primary'}" onclick="LessonPlayer._woNext()">
+                ${idx < questions.length - 1 ? '下一题 ➡' : '查看结果'}
+              </button>
+            </div>
+          </div>
+        ` : ''}
+        <button class="btn btn-speak" onclick="Speech.speakCantonese('${this._esc(q.answer)}')" style="margin-top:12px">🔊 听标准句子</button>
+      </div>`;
+  },
+
+  _woSelect(el) {
+    const idx = parseInt(el.dataset.idx);
+    if (!this._state.woSelected) this._state.woSelected = [];
+    this._state.woSelected.push(idx);
+
+    const q = this.current.lesson.content.questions[this._state.woIdx];
+    const words = q.words;
+    const userSentence = this._state.woSelected.map(i => words[i]).join('');
+
+    // 全部选完时自动判定
+    if (this._state.woSelected.length === words.length) {
+      if (userSentence === q.answer) {
+        this._state.woCorrect++;
+        Gamification.addXp(15);
+        Gamification.recordCalendar(15);
+        Gamification.addCorrect();
+        Speech.speakCantonese(q.answer);
+      } else {
+        Gamification.addWrong();
+      }
+    }
+    this._render();
+  },
+
+  _woUndo() {
+    if (this._state.woSelected && this._state.woSelected.length > 0) {
+      this._state.woSelected.pop();
+      this._render();
+    }
+  },
+
+  _woReset() {
+    this._state.woSelected = [];
+    this._render();
+  },
+
+  _woNext() {
+    this._state.woIdx++;
+    this._state.woSelected = [];
+    this._state.woPlayed = false;
+    this._render();
+  },
+
+  _renderWordOrderResult(total) {
+    const correct = this._state.woCorrect || 0;
+    const pct = total > 0 ? Math.round(correct / total * 100) : 0;
+    const stars = pct >= 90 ? 3 : pct >= 70 ? 2 : 1;
+    Gamification.addStars(stars);
+    Gamification.addXp(stars * 15);
+    Gamification.recordCalendar(stars * 15);
+
+    return `
+      <div class="lesson-body game-body">
+        <div class="completion-view">
+          <div class="complete-icon">${pct >= 70 ? '🎉' : '💪'}</div>
+          <h2>${pct >= 90 ? '太厉害了！' : pct >= 70 ? '做得不错！' : '继续加油！'}</h2>
+          <div class="result-stars">${'⭐'.repeat(stars)}</div>
+          <div class="result-stats">
+            <div>✅ 答对：${correct}/${total}</div>
+            <div>📊 正确率：${pct}%</div>
+          </div>
+          <div class="result-actions">
+            <button class="btn btn-primary" onclick="LessonPlayer._woRetry()">🔄 再试一次</button>
+            <button class="btn btn-correct" onclick="LessonPlayer._completeLesson()">✅ 完成课时</button>
+          </div>
+        </div>
+      </div>`;
+  },
+
+  _woRetry() {
+    this._state.woIdx = 0;
+    this._state.woCorrect = 0;
+    this._state.woSelected = [];
+    this._state.woPlayed = false;
+    this._render();
+  },
+
+  /* ===== 填空游戏 ===== */
+  _renderFillBlankGame(lesson) {
+    const questions = lesson.content.questions || [];
+    const idx = this._state.fbIdx || 0;
+    this._state.fbIdx = idx;
+    this._state.fbCorrect = this._state.fbCorrect || 0;
+    this._state.fbWrong = this._state.fbWrong || 0;
+    this._state.fbAnswered = this._state.fbAnswered || false;
+
+    if (idx >= questions.length) {
+      return this._renderFillBlankResult(questions.length);
+    }
+
+    const q = questions[idx];
+    // 播放音频提示
+    if (q.speakText && !this._state.fbAnswered) {
+      setTimeout(() => Speech.speakCantonese(q.speakText), 500);
+    }
+
+    // 生成选项（正确答案 + 干扰项）
+    const options = q.options || this._generateFillBlankOptions(q.answer, lesson);
+
+    return `
+      <div class="lesson-body game-body">
+        <div class="game-header">
+          <div class="quiz-progress">${idx + 1} / ${questions.length}</div>
+          <div class="quiz-score">✅${this._state.fbCorrect} ❌${this._state.fbWrong}</div>
+        </div>
+        <div class="game-instruction">✏️ 选出正确的词语填入空格</div>
+        <div class="fb-sentence-card">
+          <div class="fb-sentence">${this._highlightBlank(q.sentence)}</div>
+          ${q.meaning ? `<div class="fb-meaning">💬 ${q.meaning}</div>` : ''}
+        </div>
+        ${q.speakText ? `
+          <button class="btn btn-speak" onclick="Speech.speakCantonese('${this._esc(q.speakText)}')" style="margin:8px 0">🔊 听完整句子</button>
+        ` : ''}
+        <div class="quiz-options">
+          ${options.map((opt, i) => `
+            <div class="quiz-option" data-value="${this._esc(opt)}" data-answer="${this._esc(q.answer)}" onclick="LessonPlayer._fbAnswer(this)">
+              <span class="opt-letter">${'ABCD'[i]}</span>
+              <span class="opt-text">${opt}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+  },
+
+  _highlightBlank(sentence) {
+    return sentence.replace('___', '<span class="fb-blank">___</span>');
+  },
+
+  _generateFillBlankOptions(answer, lesson) {
+    // 从当前课时其他题目中收集干扰项
+    const allAnswers = (lesson.content.questions || []).map(q => q.answer).filter(a => a !== answer);
+    const distractors = allAnswers.sort(() => Math.random() - 0.5).slice(0, 3);
+    while (distractors.length < 3 && allAnswers.length > 0) {
+      distractors.push(allAnswers.pop());
+    }
+    return [answer, ...distractors].sort(() => Math.random() - 0.5);
+  },
+
+  _fbAnswer(el) {
+    if (this._state.fbAnswered) return;
+    this._state.fbAnswered = true;
+    const value = el.dataset.value;
+    const answer = el.dataset.answer;
+    const correct = value === answer;
+
+    document.querySelectorAll('.quiz-option').forEach(opt => {
+      opt.classList.add('disabled');
+      if (opt.dataset.value === answer) opt.classList.add('correct');
+    });
+    if (!correct) el.classList.add('wrong');
+
+    // 高亮填空处
+    const blankEl = document.querySelector('.fb-blank');
+    if (blankEl) {
+      blankEl.textContent = correct ? answer : answer;
+      blankEl.classList.add(correct ? 'fb-correct' : 'fb-wrong');
+    }
+
+    if (correct) {
+      this._state.fbCorrect++;
+      Gamification.addXp(10);
+      Gamification.recordCalendar(10);
+      Gamification.addCorrect();
+      if (this.current.lesson.content.questions[this._state.fbIdx].speakText) {
+        Speech.speakCantonese(this.current.lesson.content.questions[this._state.fbIdx].speakText);
+      }
+    } else {
+      this._state.fbWrong++;
+      Gamification.addWrong();
+    }
+
+    setTimeout(() => {
+      this._state.fbIdx++;
+      this._state.fbAnswered = false;
+      this._render();
+    }, correct ? 1200 : 2200);
+  },
+
+  _renderFillBlankResult(total) {
+    const correct = this._state.fbCorrect || 0;
+    const wrong = this._state.fbWrong || 0;
+    const pct = total > 0 ? Math.round(correct / total * 100) : 0;
+    const stars = pct >= 90 ? 3 : pct >= 70 ? 2 : 1;
+    Gamification.addStars(stars);
+    Gamification.addXp(stars * 15);
+    Gamification.recordCalendar(stars * 15);
+
+    return `
+      <div class="lesson-body game-body">
+        <div class="completion-view">
+          <div class="complete-icon">${pct >= 70 ? '🎉' : '💪'}</div>
+          <h2>${pct >= 90 ? '太厉害了！' : pct >= 70 ? '做得不错！' : '继续加油！'}</h2>
+          <div class="result-stars">${'⭐'.repeat(stars)}</div>
+          <div class="result-stats">
+            <div>✅ 答对：${correct}</div>
+            <div>❌ 答错：${wrong}</div>
+            <div>📊 正确率：${pct}%</div>
+          </div>
+          <div class="result-actions">
+            <button class="btn btn-primary" onclick="LessonPlayer._fbRetry()">🔄 再试一次</button>
+            <button class="btn btn-correct" onclick="LessonPlayer._completeLesson()">✅ 完成课时</button>
+          </div>
+        </div>
+      </div>`;
+  },
+
+  _fbRetry() {
+    this._state.fbIdx = 0;
+    this._state.fbCorrect = 0;
+    this._state.fbWrong = 0;
+    this._state.fbAnswered = false;
+    this._render();
+  },
+
+  /* ===== 听音选图游戏 ===== */
+  _renderSoundPictureGame(lesson) {
+    const questions = lesson.content.questions || [];
+    const idx = this._state.spIdx || 0;
+    this._state.spIdx = idx;
+    this._state.spCorrect = this._state.spCorrect || 0;
+    this._state.spWrong = this._state.spWrong || 0;
+    this._state.spAnswered = this._state.spAnswered || false;
+
+    if (idx >= questions.length) {
+      return this._renderSoundPictureResult(questions.length);
+    }
+
+    const q = questions[idx];
+
+    // 自动播放音频
+    if (!this._state.spAnswered) {
+      setTimeout(() => Speech.speakCantonese(q.speakText), 500);
+    }
+
+    return `
+      <div class="lesson-body game-body">
+        <div class="game-header">
+          <div class="quiz-progress">${idx + 1} / ${questions.length}</div>
+          <div class="quiz-score">✅${this._state.spCorrect} ❌${this._state.spWrong}</div>
+        </div>
+        <div class="game-instruction">👂 听粤语发音，选出正确的意思</div>
+        <div class="sp-audio-area">
+          <button class="btn btn-speak btn-lg" onclick="Speech.speakCantonese('${this._esc(q.speakText)}')">
+            🔊 再听一次
+          </button>
+          ${q.speakSlow !== false ? `
+            <button class="btn btn-speak" onclick="Speech.speakSlow('${this._esc(q.speakText)}')">🐢 慢速</button>
+          ` : ''}
+        </div>
+        <div class="sp-options-grid">
+          ${(q.options || []).map((opt, i) => `
+            <div class="sp-option-card" data-value="${this._esc(opt.text)}" data-answer="${this._esc(q.answer)}" onclick="LessonPlayer._spAnswer(this)">
+              <div class="sp-option-emoji">${opt.emoji || '📌'}</div>
+              <div class="sp-option-text">${opt.text}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+  },
+
+  _spAnswer(el) {
+    if (this._state.spAnswered) return;
+    this._state.spAnswered = true;
+    const value = el.dataset.value;
+    const answer = el.dataset.answer;
+    const correct = value === answer;
+
+    document.querySelectorAll('.sp-option-card').forEach(card => {
+      card.classList.add('disabled');
+      if (card.dataset.value === answer) card.classList.add('correct');
+    });
+    if (!correct) el.classList.add('wrong');
+
+    if (correct) {
+      this._state.spCorrect++;
+      Gamification.addXp(10);
+      Gamification.recordCalendar(10);
+      Gamification.addCorrect();
+      Speech.speakCantonese(answer);
+    } else {
+      this._state.spWrong++;
+      Gamification.addWrong();
+    }
+
+    setTimeout(() => {
+      this._state.spIdx++;
+      this._state.spAnswered = false;
+      this._render();
+    }, correct ? 1200 : 2200);
+  },
+
+  _renderSoundPictureResult(total) {
+    const correct = this._state.spCorrect || 0;
+    const wrong = this._state.spWrong || 0;
+    const pct = total > 0 ? Math.round(correct / total * 100) : 0;
+    const stars = pct >= 90 ? 3 : pct >= 70 ? 2 : 1;
+    Gamification.addStars(stars);
+    Gamification.addXp(stars * 15);
+    Gamification.recordCalendar(stars * 15);
+
+    return `
+      <div class="lesson-body game-body">
+        <div class="completion-view">
+          <div class="complete-icon">${pct >= 70 ? '🎉' : '💪'}</div>
+          <h2>${pct >= 90 ? '太厉害了！' : pct >= 70 ? '做得不错！' : '继续加油！'}</h2>
+          <div class="result-stars">${'⭐'.repeat(stars)}</div>
+          <div class="result-stats">
+            <div>✅ 答对：${correct}</div>
+            <div>❌ 答错：${wrong}</div>
+            <div>📊 正确率：${pct}%</div>
+          </div>
+          <div class="result-actions">
+            <button class="btn btn-primary" onclick="LessonPlayer._spRetry()">🔄 再试一次</button>
+            <button class="btn btn-correct" onclick="LessonPlayer._completeLesson()">✅ 完成课时</button>
+          </div>
+        </div>
+      </div>`;
+  },
+
+  _spRetry() {
+    this._state.spIdx = 0;
+    this._state.spCorrect = 0;
+    this._state.spWrong = 0;
+    this._state.spAnswered = false;
+    this._render();
   },
 
   /* ===== 复习模式 ===== */

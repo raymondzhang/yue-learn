@@ -1253,6 +1253,263 @@
   margin-top: 10px;
 }
 
+/* ===== 排字成句游戏 ===== */
+.wo-meaning {
+  background: #f0f7ff;
+  padding: 10px 16px;
+  border-radius: 10px;
+  color: #555;
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+}
+
+.wo-target-area {
+  background: #fafafa;
+  border: 2px dashed #ccc;
+  border-radius: 12px;
+  min-height: 56px;
+  padding: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.wo-placeholder {
+  color: #bbb;
+  font-size: 0.9rem;
+  width: 100%;
+  text-align: center;
+}
+
+.wo-selected-words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.wo-word {
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.wo-word.selected {
+  background: #45B7D1;
+  color: #fff;
+}
+
+.wo-word-pool {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.wo-word-tile {
+  background: #fff;
+  border: 2px solid #e0e0e0;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.wo-word-tile:hover {
+  border-color: #45B7D1;
+  background: #f0f9ff;
+  transform: translateY(-2px);
+}
+
+.wo-word-tile:active {
+  transform: scale(0.95);
+}
+
+.wo-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.wo-result-area {
+  text-align: center;
+  padding: 16px 0;
+}
+
+.wo-result-sentence {
+  font-size: 1.3rem;
+  font-weight: 600;
+  padding: 12px 20px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.wo-result-sentence.correct {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.wo-result-sentence.wrong {
+  background: #fbe9e7;
+  color: #c62828;
+}
+
+.wo-correct-answer {
+  color: #4caf50;
+  font-size: 1rem;
+  margin: 8px 0;
+}
+
+.wo-result-actions {
+  margin-top: 16px;
+}
+
+.game-hint-text {
+  background: #fff8e1;
+  padding: 8px 14px;
+  border-radius: 8px;
+  color: #795548;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+/* ===== 填空游戏 ===== */
+.fb-sentence-card {
+  background: #fff;
+  border: 2px solid #e0e0e0;
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.fb-sentence {
+  font-size: 1.4rem;
+  font-weight: 500;
+  line-height: 1.8;
+}
+
+.fb-blank {
+  display: inline-block;
+  min-width: 60px;
+  border-bottom: 3px solid #45B7D1;
+  padding: 2px 8px;
+  margin: 0 4px;
+  color: #45B7D1;
+  font-weight: 700;
+  transition: all 0.3s;
+}
+
+.fb-blank.fb-correct {
+  border-bottom-color: #4caf50;
+  color: #4caf50;
+}
+
+.fb-blank.fb-wrong {
+  border-bottom-color: #f44336;
+  color: #f44336;
+}
+
+.fb-meaning {
+  margin-top: 10px;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+/* ===== 听音选图游戏 ===== */
+.sp-audio-area {
+  text-align: center;
+  margin: 16px 0;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.sp-audio-area .btn-lg {
+  font-size: 1.1rem;
+  padding: 12px 28px;
+}
+
+.sp-options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.sp-option-card {
+  background: #fff;
+  border: 2px solid #e0e0e0;
+  border-radius: 14px;
+  padding: 20px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.sp-option-card:hover {
+  border-color: #45B7D1;
+  background: #f0f9ff;
+  transform: translateY(-2px);
+}
+
+.sp-option-card:active {
+  transform: scale(0.97);
+}
+
+.sp-option-card.correct {
+  border-color: #4caf50;
+  background: #e8f5e9;
+}
+
+.sp-option-card.wrong {
+  border-color: #f44336;
+  background: #fbe9e7;
+}
+
+.sp-option-card.disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.sp-option-emoji {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+}
+
+.sp-option-text {
+  font-size: 1rem;
+  color: #333;
+  font-weight: 500;
+}
+
+/* ===== 通用游戏头部 ===== */
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.game-instruction {
+  text-align: center;
+  color: #666;
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
 /* ===== 响应式 ===== */
 @media (max-width: 480px) {
   .lesson-view {
@@ -1279,5 +1536,27 @@
 
   .quiz-prompt-big {
     font-size: 1.8rem;
+  }
+
+  .sp-options-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .sp-option-card {
+    padding: 14px 8px;
+  }
+
+  .sp-option-emoji {
+    font-size: 2rem;
+  }
+
+  .wo-word-tile {
+    padding: 8px 14px;
+    font-size: 1rem;
+  }
+
+  .fb-sentence {
+    font-size: 1.2rem;
   }
 }
